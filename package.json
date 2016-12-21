@@ -1,7 +1,7 @@
 {
   "name": "lyric",
   "version": "1.0.0",
-  "description": "Online lyrics LRC England production tools",
+  "description": "Online LRC lyrics production tool",
   "author": "u3u <485463145@qq.com>",
   "private": true,
   "scripts": {
