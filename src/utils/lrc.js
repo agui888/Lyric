@@ -2,8 +2,10 @@
  * @Author: @u3u 
  * @Date: 2016-12-20 22:04:31 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-21 18:52:37
+ * @Last Modified time: 2016-12-22 22:17:46
  */
+
+import QQMusicAPI from './QQMusicAPI'
 
 export default class LRC {
 
@@ -19,25 +21,25 @@ export default class LRC {
 
   // 同步歌曲名／歌手名／专辑名／编辑人标签
   static syncMeta(meta = { songName: '', singerName: '', albumName: '', byName: '' }) {
-    const template = LRC.removeSpaces(
-      `[ti:${meta.songName || ''}]
-      [ar:${meta.singerName || ''}]
+    // 空信息不要返回
+    if (Object.values(meta).map(x => !x).filter(x => x === false).length <= 0) return ''
+    return LRC.removeSpaces(
+      `[ti:${QQMusicAPI.htmldecode(meta.songName || '')}]
+      [ar:${QQMusicAPI.htmldecode(meta.singerName || '')}]
       [al:${meta.albumName || ''}]
       [by:${meta.byName || ''}]
       [t_time:(00:00)]
       [offset:0]`
-    )
-    return template
+    ) + '\n\n'
   }
 
   // 插入时间标签
-  static insertTimeLabel() {
-    // debugger
+  static insertTimeTag(mode = 'insert') {
     const textarea = this.$refs.textarea.$el.childNodes[0] // 文本框对象
-    const value = this.lrc // 文本框内的值
+    let value = this.lrc // 文本框内的值
     if (!value) return
 
-    const audio = this.aplayer.audio // Audio
+    const audio = this.aplayer.audio // 音频对象
     const startCurPoint = textarea.selectionStart // 光标位置
     const lyrics = value.split('\n') // 歌词数组
     const lineIndex = value.substr(0, startCurPoint).split('\n').length - 1 // 光标当前的行索引
@@ -46,18 +48,30 @@ export default class LRC {
     let index = 0
     lyrics.filter((x, i) => i < lineIndex).map((x, i) => (index += x.length + 1))
 
-    // 写入时间标签
-    const minute = Number.parseInt(audio.currentTime / 60).toString().padLeft(2, '0')
-    const second = Number.parseInt(audio.currentTime % 60).toString().padLeft(2, '0')
-    const milliscond = Number.parseInt(audio.currentTime % 60 * 1000 % 100).toString().padLeft(2, '0')
-    const time = `[${minute}:${second}.${milliscond}] `
-    const result = value.substr(0, index) + time + value.substr(index)
-    this.lrc = result.endsWith('\n') ? result : result + '\n' // 保证末尾有一个回车
+    // debugger
+
+    let time = { length: 0 }
+    mode !== 'insert' && // 除了插入操作 移除和替换都需要移除当前行的时间标签（替换=移除+插入）
+      (lyrics[lineIndex] = LRC.deleteTimeTag(lyrics[lineIndex]))
+
+    if (mode === 'remove') {
+      // 移除时间标签
+      this.lrc = lyrics.join('\n')
+    } else {
+      // 写入／替换时间标签
+      const minute = Number.parseInt(audio.currentTime / 60).toString().padLeft(2, '0')
+      const second = Number.parseInt(audio.currentTime % 60).toString().padLeft(2, '0')
+      const milliscond = Number.parseInt(audio.currentTime % 60 * 1000 % 100).toString().padLeft(2, '0')
+      time = `[${minute}:${second}.${milliscond}]`
+      mode === 'replace' && (value = lyrics.join('\n')) // 替换模式需要更新值
+      const result = value.substr(0, index) + time + value.substr(index)
+      this.lrc = result.endsWith('\n') ? result : result + '\n' // 保证末尾有一个回车
+    }
 
     // 光标位置优化
     this.$nextTick(function () {
-      textarea.focus()
       textarea.selectionStart = textarea.selectionEnd = index + time.length + lyrics[lineIndex].length + 1
+      textarea.focus()
     })
   }
 
@@ -82,26 +96,26 @@ export default class LRC {
   }
 
   // 删除所有信息标签
-  static deleteMetaLabel(lrc) {
+  static deleteMeta(lrc) {
     if (!lrc) return ''
     LRC.metaRegex.forEach(reg => (lrc = lrc.replace(reg, '')))
     return lrc.trim()
   }
 
   // 删除所有时间标签
-  static deleteTimeLabel(lrc) {
+  static deleteTimeTag(lrc) {
     if (!lrc) return ''
     return lrc.replace(LRC.regex, '')
   }
 
   // 替换当前行时间标签
-  static replaceTimeLabel(textarea, audio) {
-
+  static replaceTimeTag(vm) {
+    LRC.insertTimeTag.call(vm, 'replace')
   }
 
   // 移除当前行时间标签
-  static removeTimeLabel() {
-
+  static removeTimeTag(vm) {
+    LRC.insertTimeTag.call(vm, 'remove')
   }
 
   // 去除每一行的首尾空格
