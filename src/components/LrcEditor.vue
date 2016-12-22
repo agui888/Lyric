@@ -5,13 +5,13 @@
         <el-button size="small" icon="plus" @click="add"></el-button>
       </el-tooltip>
       <el-tooltip content="替换当前时间标签(F10)" placement="top">
-        <el-button size="small" icon="-replace3"></el-button>
+        <el-button size="small" icon="-replace3" @click="replace"></el-button>
       </el-tooltip>
       <el-tooltip content="移除当前时间标签(F11)" placement="top">
-        <el-button size="small" icon="minus"></el-button>
+        <el-button size="small" icon="minus" @click="remove"></el-button>
       </el-tooltip>
       <el-tooltip content="删除所有时间标签(F12)" placement="top">
-        <el-button size="small" icon="delete2"></el-button>
+        <el-button size="small" icon="delete2" @click="del"></el-button>
       </el-tooltip>
       <el-tooltip content="撤销(ctrl+z)" placement="top">
         <el-button size="small" icon="-undo-copy"></el-button>
@@ -23,7 +23,7 @@
         <el-button size="small" icon="time"></el-button>
       </el-tooltip>-->
       <el-tooltip content="预览歌词(ctrl+shift+v)" placement="top">
-        <el-button size="small" icon="-preview"></el-button>
+        <el-button size="small" icon="-preview" @click="preview"></el-button>
       </el-tooltip>
     </div>
     <el-input ref="textarea" type="textarea" :autosize="{ minRows: 15, maxRows: 15 }" placeholder="请输入歌词文本" @input="syncMeta" v-model="lrc"></el-input>
@@ -43,9 +43,27 @@ export default {
     }
   },
   methods: {
+    // 添加时间标签
     add() {
-      LRC.insertTimeLabel.call(this)
+      LRC.insertTimeTag.call(this)
     },
+    // 移除当前时间标签
+    remove() {
+      LRC.removeTimeTag(this)
+    },
+    // 替换时间标签
+    replace() {
+      LRC.replaceTimeTag(this)
+    },
+    // 删除所有时间标签
+    del() {
+      this.lrc = LRC.deleteTimeTag(this.lrc)
+    },
+    // 预览歌词
+    preview() {
+      this.$message('preview lyric')
+    },
+    // 同步LRC头部信息
     syncMeta() {
       this.$nextTick(function() {
         this.lrc = LRC.removeSpaces(this.lrc)
@@ -56,7 +74,7 @@ export default {
   watch: {
     // 同步LRC头部信息
     lyric() {
-      this.lrc = this.lyric + '\n\n' + LRC.deleteMetaLabel(this.lrc)
+      this.lrc = this.lyric + LRC.deleteMeta(this.lrc)
     }
   }
 }
@@ -99,10 +117,15 @@ export default {
       border: 0;
       border-radius: 0;
       padding: 10px;
+      background: transparent;
+      &:focus,
       &:hover,
       &:active {
-        color: #333;
-        background: #f1f1f1;
+        color: inherit;
+      }
+      &:hover,
+      &:active {
+        background: rgba(241, 241, 241, .8);
       }
     }
   }
