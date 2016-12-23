@@ -23,13 +23,13 @@
       <el-row :gutter="20">
         <!-- left -->
         <el-col :lg="{ span: 13, push: 2 }">
-          <el-form ref="form" label-position="left" label-width="60px">
-            <el-form-item label="歌曲名">
-              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌曲名" @input="syncMeta" @select="selectHandler" v-model="songName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
+          <el-form ref="form" label-position="right" label-width="70px" :model="formModel" :rules="rules">
+            <el-form-item label="歌曲名" prop="songName">
+              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌曲名" @input="syncMeta" @select="selectHandler" v-model="formModel.songName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
             </el-form-item>
-            <el-form-item label="歌手名">
+            <el-form-item label="歌手名" prop="singerName">
               <!--<el-input placeholder="请输入歌手名" @input="syncMeta" v-model="singerName"></el-input>-->
-              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌手名" @input="syncMeta" @select="selectHandler" v-model="singerName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
+              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌手名" @input="syncMeta" @select="selectHandler" v-model="formModel.singerName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
             </el-form-item>
             <el-form-item label="专辑名">
               <el-input placeholder="请输入专辑名" @input="syncMeta" v-model="albumName"></el-input>
@@ -38,7 +38,7 @@
               <el-input placeholder="请输入编辑人" @input="syncMeta" v-model="byName"></el-input>
             </el-form-item>
             <!-- lrc-editor component -->
-            <lrc-editor @bindMeta="bindMeta" :aplayer="aplayer" :lyric="lyric" :songName="songName" :byName="byName"></lrc-editor>
+            <lrc-editor @bindMeta="bindMeta" :aplayer="aplayer" :lyric="lyric" :songName="formModel.songName" :byName="byName"></lrc-editor>
             <div class="button-group">
               <!--<el-button type="warning" icon="edit">临时保存(ctrl+S)</el-button>-->
               <a :class="downloadButtonClass" :href="downloadUrl" :download="downloadName">
@@ -97,8 +97,19 @@ export default {
   name: 'app',
   data() {
     return {
-      songName: null,
-      singerName: null,
+      formModel: {
+        songName: null,
+        singerName: null,
+      },
+      // 验证规则
+      rules: {
+        songName: [
+          { required: true, message: '请输入歌曲名称' }
+        ],
+        singerName: [
+          { required: true, message: '请输入歌手名称，多个歌手之间用 / 或 & 隔开' }
+        ]
+      },
       albumName: null,
       byName: null,
       lyric: null,
@@ -110,19 +121,23 @@ export default {
   methods: {
     // [回调] 绑定信息
     bindMeta(meta) {
-      this.songName = meta.songName
-      this.singerName = meta.singerName
+      this.formModel.songName = meta.songName
+      this.formModel.singerName = meta.singerName
       this.albumName = meta.albumName
       this.byName = meta.byName
-      this.downloadUrl = meta.lrc && this.songName &&
-        this.singerName ? `data:text/plain;base64,${window.base64.encode(meta.lrc)}` : 'javascript:;' // update download url
+      this.downloadUrl = meta.lrc && this.formModel.songName && // generate or update .lrc download url
+        this.formModel.singerName ? `data:text/plain;base64,${window.base64.encode(meta.lrc)}` : 'javascript:;'
+
+      // 更新步骤条
+      if (this.formModel.songName && this.formModel.singerName && meta.lrc) this.step = 2
+      else this.step = 1
     },
     // 同步LRC头部信息
     syncMeta() {
       this.$nextTick(function() {
         this.lyric = LRC.syncMeta.call(this, {
-          songName: this.songName,
-          singerName: this.singerName,
+          songName: this.formModel.songName,
+          singerName: this.formModel.singerName,
           albumName: this.albumName,
           byName: this.byName
         })
@@ -130,6 +145,8 @@ export default {
     },
     // 初始化APlayer
     async createAplayer(music, autoplay = false, showlrc = 0, mode = 'random', preload = 'metadata') {
+      window.NProgress.start()
+
       // 处理歌词显示切换无效
       const old = document.querySelector('.aplayer')
       const element = document.createElement('div')
@@ -139,15 +156,18 @@ export default {
 
       // 初始化 APlayer
       this.aplayer = new window.APlayer({ element, autoplay, mode, preload, showlrc, music, listmaxheight: '115px' })
-      this.aplayer.element.querySelector('.aplayer-icon-menu').click() // 播放列表默认收缩
+      if ('length' in music) {
+        this.aplayer.element.querySelector('.aplayer-icon-menu').click() // 播放列表默认收缩
 
-      // 修正 scrollTop
-      this.aplayer.element.querySelector('.aplayer-list').scrollTop =
-        this.aplayer.element.querySelector('.aplayer-list .aplayer-list-light').offsetTop -
-        this.aplayer.element.querySelector('.aplayer-list').offsetTop
+        // 修正 scrollTop
+        this.aplayer.element.querySelector('.aplayer-list').scrollTop =
+          this.aplayer.element.querySelector('.aplayer-list .aplayer-list-light').offsetTop -
+          this.aplayer.element.querySelector('.aplayer-list').offsetTop
+      }
 
       // register event
       this.aplayer.on('canplay', () => {
+        window.NProgress.done()
         if (showlrc !== 0) return
         this.step = 1
         this.syncMeta()
@@ -157,23 +177,23 @@ export default {
     },
     // 搜索建议
     async searchSuggest(qs, cb) {
-      const empty = this.songName && this.singerName // 禁止弹出多个搜索建议
+      const empty = this.formModel.songName && this.formModel.singerName // 禁止弹出多个搜索建议
       if (!qs || (empty && document.querySelectorAll('.el-autocomplete__suggestions').length > 0)) {
         cb([]) // 搜索关键字为空
         return
       }
       // 如果歌曲名和歌手名都输入了，则搜索组合
-      this.songName && this.singerName && (qs = `${this.songName.trim()} - ${this.singerName.trim()}`)
+      this.formModel.songName && this.formModel.singerName && (qs = `${this.formModel.songName.trim()} - ${this.formModel.singerName.trim()}`)
       const result = await QQMusicAPI.search(qs)
       cb(result.data.song.list)
     },
     // 绑定建议信息
     selectHandler(item) {
-      this.songName = item.songname
-      this.singerName = item.singer.map(x => x.name).join(' / ')
+      this.formModel.songName = item.songname
+      this.formModel.singerName = item.singer.map(x => x.name).join(' / ')
       this.createAplayer({
-        title: this.songName,
-        author: this.singerName,
+        title: this.formModel.songName,
+        author: this.formModel.singerName,
         url: QQMusicAPI.getPlayUrl(item.songid),
         pic: QQMusicAPI.getSongPic(item.albummid),
       }, true, 0, 'loop')
@@ -181,6 +201,7 @@ export default {
   },
   // 初始化
   created() {
+    debugger
     this.$nextTick(async function() {
       const loading = this.$loading({ fullscreen: true })
       const list = await QQMusicAPI.getMyLikeSongs() // 获取我喜欢的音乐
@@ -219,7 +240,7 @@ export default {
   computed: {
     downloadName() {
       if (this.downloadUrl === 'javascript:;') return
-      return `${this.songName} - ${this.singerName}.lrc`
+      return `${this.formModel.songName} - ${this.formModel.singerName}.lrc`
     },
     downloadButtonClass() {
       return {
