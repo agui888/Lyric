@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-22 00:41:11 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-23 14:32:46
+ * @Last Modified time: 2016-12-23 14:47:13
  */
 import request from './request'
 
@@ -36,7 +36,7 @@ export default class QQMusicAPI {
 
   // 搜索歌曲(缓存10分钟)
   static async search(w = '', p = 1, n = 10, cache = 10) {
-    const cacheKey = 'QQMusicAPI.search'
+    const cacheKey = 'QQMusicAPI.search.' + w
     if (cache <= 0) QQMusicAPI.$cache.remove(cacheKey) // 如果需要立即清除缓存
     let json = QQMusicAPI.$cache.get(cacheKey)
     if (json) return json // 如果缓存中有数据则返回缓存
