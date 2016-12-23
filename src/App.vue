@@ -56,8 +56,23 @@
       <div class="footer-content">
         <h2>Lyrics production tool</h2>
         <a href="javascript:;">反馈建议</a>
-        <a href="http://y.qq.com" target="_blank">QQ音乐</a>
-        <a href="http://music.163.com" target="_blank">网易云音乐</a>
+        <a href="javascript:;">使用指南</a>
+        <el-tooltip content="QQ音乐提供数据接口支持" placement="top">
+          <a href="http://y.qq.com" target="_blank">QQ音乐</a>
+        </el-tooltip>
+        <el-tooltip content="上传歌词赚积分" placement="top">
+          <a href="http://music.163.com/#/store/gain/uplyric" target="_blank">网易云音乐</a>
+        </el-tooltip>
+      </div>
+      <div class="icon-groups">
+        <a href="javascript:;" class="el-icon--qq"></a>
+        <a href="javascript:;" class="el-icon--weixin"></a>
+        <el-tooltip content="欢迎关注我的微博(๑>◡<๑)" placement="top">
+          <a href="http://www.weibo.com/u/5896727167" class="el-icon--weibo" target="_blank"></a>
+        </el-tooltip>
+        <el-tooltip content="喜欢的话收藏一下仓库哟(⌯˃̶᷄ ꈊ˂̶᷄ ૢ)" placement="top">
+          <a href="https://github.com/u3u" class="el-icon--github" target="_blank"></a>
+        </el-tooltip>
       </div>
     </footer>
   </div>
@@ -143,11 +158,13 @@ export default {
   created() {
     this.$nextTick(async function() {
       const loading = this.$loading({ fullscreen: true })
-      const list = await QQMusicAPI.getMyLikeSongs()
-      const index = Math.floor(Math.random() * list.length)
+      const list = await QQMusicAPI.getMyLikeSongs() // 获取我喜欢的音乐
+      const index = Math.floor(Math.random() * list.length) // 随机一首
       const song = list[index]
-      let lrc = await QQMusicAPI.getLyric(song.songmid)
+      let lrc = await QQMusicAPI.getLyric(song.songmid) // 获取LRC歌词
       lrc = lrc.replace(/\[/g, '\n[').trim() // 单行歌词兼容
+
+      // 创建播放器
       this.createAplayer({
         title: song.songname,
         author: song.singer.map(x => x.name).join('&'),
@@ -155,6 +172,7 @@ export default {
         pic: QQMusicAPI.getSongPic(song.albummid),
         lrc,
       }, false, 1)
+
       await Thread.sleep(3e2)
       loading.close()
     })
@@ -178,8 +196,14 @@ body {
   color: #333;
 }
 
-.container {
-  padding: 15px;
+#app {
+  [class*=" el-icon--"],
+  [class^=el-icon--] {
+    font-family: iconfont !important;
+  }
+  .container {
+    padding: 15px;
+  }
 }
 
 .el-row {
@@ -207,8 +231,8 @@ textarea,
 .aplayer {
   background: rgba(255, 255, 255, .85);
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, .12);
-  margin: 0;
-  margin-bottom: 26px;
+  margin: 0 !important;
+  margin-bottom: 26px !important;
   .aplayer-pic {
     background: url('http://q4.qlogo.cn/g?b=qq&nk=485463145&s=100');
     background-size: cover;
@@ -234,12 +258,6 @@ textarea,
   }
 }
 
-@media (max-width: 768px) {
-  .page-footer h2::after {
-    display: none !important;
-  }
-}
-
 .page-footer {
   height: 120px;
   background-color: #324057;
@@ -251,8 +269,8 @@ textarea,
     white-space: nowrap;
     position: absolute;
     top: 50%;
-    left: 20%;
-    transform: translate3d(-20%, -50%, 0);
+    left: 15%;
+    transform: translate3d(0, -50%, 0);
   }
   h2 {
     font-size: 22px;
@@ -269,6 +287,58 @@ textarea,
     font-size: 12px;
     color: #768193;
     text-decoration: none;
+    margin-right: 8px;
+  }
+  .icon-groups {
+    position: absolute;
+    top: 50%;
+    right: 15%;
+    transform: translate3d(0, -50%, 0);
+    [class*=" el-icon--"],
+    [class^=el-icon--] {
+      font-size: 34px;
+      display: inline-block;
+      vertical-align: middle;
+      transition: .3s;
+      margin: 0 8px;
+      &:hover {
+        color: #fff;
+        transform: scale(1.2);
+      }
+    }
+  }
+}
+
+
+/* ipad */
+
+@media (max-width: 768px) {
+  .page-footer {
+    .footer-content {
+      left: 10%;
+    }
+    .icon-groups {
+      right: 10%;
+    }
+  }
+}
+
+
+/* iPhone 6 plus */
+
+@media (max-width: 414px) {
+  .page-footer {
+    h2::after,
+    .icon-groups {
+      display: none;
+    }
+    a {
+      margin: 0;
+      &:nth-of-type(3),
+      &:nth-of-type(4) {
+        display: none;
+      }
+    }
   }
 }
 
