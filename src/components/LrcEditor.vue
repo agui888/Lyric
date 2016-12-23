@@ -86,10 +86,6 @@ export default {
   border-radius: 4px;
   background: rgba(255, 255, 255, .85);
   transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
-  [class*=" el-icon--"],
-  [class^=el-icon--] {
-    font-family: iconfont !important;
-  }
   .el-icon-reversal {
     transform: rotate(90deg);
   }
