@@ -107,7 +107,7 @@ export default {
     // 同步LRC头部信息
     syncMeta() {
       this.$nextTick(function() {
-        this.lyric = LRC.syncMeta({
+        this.lyric = LRC.syncMeta.call(this, {
           songName: this.songName,
           singerName: this.singerName,
           albumName: this.albumName,
@@ -116,7 +116,7 @@ export default {
       })
     },
     // 初始化APlayer
-    async createAplayer(music, autoplay = false, showlrc = 0) {
+    async createAplayer(music, autoplay = false, showlrc = 0, mode = 'random', preload = 'metadata') {
       // 处理歌词显示切换无效
       const old = document.querySelector('.aplayer')
       const element = document.createElement('div')
@@ -124,11 +124,15 @@ export default {
       old.parentElement.insertBefore(element, old)
       old.remove()
 
-      this.aplayer = new window.APlayer({ element, autoplay, showlrc, music, })
-      if ('url' in music && music.url && showlrc === 0) {
+      this.aplayer = new window.APlayer({ element, autoplay, mode, preload, showlrc, music, listmaxheight: '115px' })
+      this.aplayer.on('canplay', () => {
+        debugger
+        if (showlrc !== 0) return
         this.step = 1
+        this.syncMeta()
         this.$message('音频文件已载入')
-      }
+      })
+      return this.aplayer
     },
     // 搜索建议
     async searchSuggest(qs, cb) {
@@ -145,13 +149,13 @@ export default {
     // 绑定建议信息
     selectHandler(item) {
       this.songName = item.songname
-      this.singerName = item.singer.map(x => x.name).join('&')
+      this.singerName = item.singer.map(x => x.name).join(' / ')
       this.createAplayer({
         title: this.songName,
         author: this.singerName,
         url: QQMusicAPI.getPlayUrl(item.songid),
         pic: QQMusicAPI.getSongPic(item.albummid),
-      }, true)
+      }, true, 0, 'loop')
     }
   },
   // 初始化
@@ -159,19 +163,33 @@ export default {
     this.$nextTick(async function() {
       const loading = this.$loading({ fullscreen: true })
       const list = await QQMusicAPI.getMyLikeSongs() // 获取我喜欢的音乐
-      const index = Math.floor(Math.random() * list.length) // 随机一首
-      const song = list[index]
-      let lrc = await QQMusicAPI.getLyric(song.songmid) // 获取LRC歌词
-      lrc = lrc.replace(/\[/g, '\n[').trim() // 单行歌词兼容
+      const music = []
+      for (let item of list) {
+        let lrc = await QQMusicAPI.getLyric(item.songmid) // 获取LRC歌词
+        lrc = lrc.replace(/\[/g, '\n[').trim() // 单行歌词兼容
+        music.push({
+          title: item.songname,
+          author: item.singer.map(x => x.name).join(' / '),
+          url: QQMusicAPI.getPlayUrl(item.songid),
+          pic: QQMusicAPI.getSongPic(item.albummid),
+          lrc,
+        })
+      }
+      this.createAplayer(music, false, 1) // 创建播放器
+
+      // const index = Math.floor(Math.random() * list.length) // 随机一首
+      // const song = list[index]
+      // let lrc = await QQMusicAPI.getLyric(song.songmid) // 获取LRC歌词
+      // lrc = lrc.replace(/\[/g, '\n[').trim() // 单行歌词兼容
 
       // 创建播放器
-      this.createAplayer({
-        title: song.songname,
-        author: song.singer.map(x => x.name).join('&'),
-        url: QQMusicAPI.getPlayUrl(song.songid),
-        pic: QQMusicAPI.getSongPic(song.albummid),
-        lrc,
-      }, false, 1)
+      // this.createAplayer({
+      //   title: song.songname,
+      //   author: song.singer.map(x => x.name).join(' / '),
+      //   url: QQMusicAPI.getPlayUrl(song.songid),
+      //   pic: QQMusicAPI.getSongPic(song.albummid),
+      //   lrc,
+      // }, false, 1)
 
       await Thread.sleep(3e2)
       loading.close()
@@ -248,6 +266,13 @@ textarea,
     margin-left: 5px;
     p {
       text-align: left;
+    }
+  }
+  .aplayer-list ol li {
+    height: 37px;
+    line-height: 37px;
+    .aplayer-list-index {
+      display: none;
     }
   }
 }
