@@ -15,7 +15,7 @@
           <el-steps :active="step" process-status="process" finish-status="success">
             <el-step title="载入音乐文件" description="可以选择上传本地音乐文件或选择网络文件"></el-step>
             <el-step title="编辑歌词" description="填写好以下信息跟着音乐编辑歌词"></el-step>
-            <el-step title="预览歌词" description="编辑完毕后点击预览歌词查看效果"></el-step>
+            <el-step title="预览歌词并下载" description="编辑完毕后点击预览歌词查看效果，确认效果OK后点击下载歌词"></el-step>
           </el-steps>
         </el-col>
       </el-row>
@@ -38,7 +38,7 @@
               <el-input placeholder="请输入编辑人" @input="syncMeta" v-model="byName"></el-input>
             </el-form-item>
             <!-- lrc-editor component -->
-            <lrc-editor @bindMeta="bindMeta" :aplayer="aplayer" :lyric="lyric" :songName="formModel.songName" :byName="byName"></lrc-editor>
+            <lrc-editor @bindMeta="bindMeta" @previewCallback="previewLyric" :aplayer="aplayer" :lyric="lyric" :songName="formModel.songName" :byName="byName" :loadedMedia="loadedMedia"></lrc-editor>
             <div class="button-group">
               <!--<el-button type="warning" icon="edit">临时保存(ctrl+S)</el-button>-->
               <a :class="downloadButtonClass" :href="downloadUrl" :download="downloadName">
@@ -115,6 +115,7 @@ export default {
       lyric: null,
       aplayer: null,
       step: 0,
+      loadedMedia: false, // 是否载入音频文件
       downloadUrl: 'javascript:;', // 歌词下载地址
     }
   },
@@ -142,6 +143,16 @@ export default {
           byName: this.byName
         })
       })
+    },
+    // 子组件要求预览歌词，重新初始化APlayer
+    previewLyric(lrc) {
+      if (!lrc) {
+        this.$message()
+        return
+      }
+      const music = this.aplayer.music
+      music.lrc = lrc
+      this.createAplayer(music, true, 1)
     },
     // 初始化APlayer
     async createAplayer(music, autoplay = false, showlrc = 0, mode = 'random', preload = 'metadata') {
@@ -171,6 +182,7 @@ export default {
         if (showlrc !== 0) return
         this.step = 1
         this.syncMeta()
+        this.loadedMedia = true
         this.$message('音频文件已载入')
       })
       return this.aplayer
@@ -201,7 +213,6 @@ export default {
   },
   // 初始化
   created() {
-    debugger
     this.$nextTick(async function() {
       const loading = this.$loading({ fullscreen: true })
       const list = await QQMusicAPI.getMyLikeSongs() // 获取我喜欢的音乐
@@ -459,5 +470,33 @@ textarea,
 
 .el-message__group p {
   vertical-align: top !important;
+}
+
+
+/* 搜索建议增加QQ音乐版权 */
+
+.el-autocomplete__suggestions {
+  &::before,
+  &::after {
+    content: 'QQ音乐提供接口支持';
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    font-size: 12px;
+    line-height: normal;
+    color: #c6c6c6;
+  }
+  &::before {
+    /*content: '\e615';
+    font-family: iconfont !important;
+    color: #f9cb15;*/
+    content: '';
+    right: 130px;
+    bottom: 12px;
+    width: 12px;
+    height: 12px;
+    background: url('http://y.qq.com/favicon.ico') no-repeat;
+    background-size: cover;
+  }
 }
 </style>
