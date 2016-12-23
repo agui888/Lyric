@@ -26,9 +26,10 @@
         <el-button size="small" icon="-preview" @click="preview"></el-button>
       </el-tooltip>
     </div>
-    <el-input ref="textarea" type="textarea" :autosize="{ minRows: 15, maxRows: 15 }" placeholder="请输入歌词文本" @input="syncMeta" @keyup.120.native="add" @keyup.121.native="replace" @keyup.122.native="remove" @keyup.123.native="del" @keyup.ctrl.90.native="undo" @keyup.ctrl.89.native="redo" v-model="lrc"></el-input>
+    <el-input ref="textarea" type="textarea" :autosize="{ minRows: 15, maxRows: 15 }" placeholder="请输入歌词文本" @input="syncMeta" @keyup.120.native="add" @keyup.121.native="replace" @keyup.122.native="remove" @keyup.123.native="del" @keyup.ctrl.90.native="undo" @keyup.ctrl.89.native="redo" @keyup.ctrl.shift.86.native="preview" v-model="lrc"></el-input>
     <div class="lrc-editor_status-bar">
-      <span v-show="songName">正在编辑歌曲 《{{ songName }}》 的歌词 &nbsp;&nbsp; 编辑人: {{ byName || '活雷锋' }}</span>
+      <span v-if="songName">正在编辑歌曲 《{{ songName }}》 的歌词 &nbsp;&nbsp; 编辑人: {{ byName || '活雷锋' }}</span>
+      <span v-else>LRC Editor Version 1.0</span>
       <span class="lrc-editor_timebar" v-show="savetime"><i class="el-icon-time"></i> {{ savetime }}</span>
     </div>
   </div>
@@ -41,6 +42,7 @@ export default {
     songName: String,
     byName: String,
     lyric: String,
+    loadedMedia: Boolean, // [父组件状态] 是否载入音频文件 未载入提示载入后预览歌词
     aplayer: Object,
   },
   data() {
@@ -78,7 +80,17 @@ export default {
     },
     // 预览歌词
     preview() {
-      this.$message('preview lyric')
+      const isDesktop = window.device.desktop()
+      if (!this.loadedMedia) {
+        this.$message({
+          type: 'warning',
+          message: isDesktop ? '音乐文件未载入，可通过歌曲名称搜索QQ音乐曲库，使用网络地址，或本地上传的方式载入。' : '请先载入音乐文件',
+          duration: isDesktop ? 10e3 : 3e3,
+          showClose: isDesktop,
+        })
+        return
+      }
+      this.$emit('previewCallback', this.lrc)
     },
     // 同步LRC头部信息
     syncMeta() {
@@ -191,7 +203,7 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     .lrc-editor_timebar {
-      color: #ddd;
+      color: #c6c6c6;
       position: absolute;
       top: 50%;
       right: 15px;
