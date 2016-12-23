@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-21 18:19:54 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-22 18:37:14
+ * @Last Modified time: 2016-12-23 21:59:09
  */
 
 // The Vue build version to load with the `import` command
@@ -26,7 +26,7 @@ Vue.component('autocomplete-singer-name', {
     var item = ctx.props.item
     return h('li', ctx.data, [
       h('div', { attrs: { class: 'songName' } }, [QQMusicAPI.htmldecode(item.songname)]),
-      h('span', { attrs: { class: 'singerName' } }, [QQMusicAPI.htmldecode(item.singer.map(x => x.name).join('&'))])
+      h('span', { attrs: { class: 'singerName' } }, [QQMusicAPI.htmldecode(item.singer.map(x => x.name).join(' / '))])
     ])
   },
   props: {
