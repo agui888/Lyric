@@ -32,7 +32,7 @@
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
   <title>LRC歌词制作工具</title>
   <link type="image/x-icon" rel=icon href="http://q4.qlogo.cn/g?b=qq&nk=485463145&s=40">
-  <link rel="stylesheet" href="http://at.alicdn.com/t/font_hq7rip83z0duc8fr.css">
+  <link rel="stylesheet" href="http://at.alicdn.com/t/font_3p486uebytejc3di.css">
   <link rel="stylesheet" href="./static/css/kaomoji.css">
 </head>
 
@@ -47,10 +47,15 @@
   <script src="http://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
   <script src="http://cdn.bootcss.com/aplayer/1.5.8/APlayer.min.js"></script>
   <script src="http://cdn.bootcss.com/lscache/1.0.7/lscache.min.js"></script>
+  <script src="http://cdn.bootcss.com/moment.js/2.17.1/moment.min.js"></script>
+  <script src="http://cdn.bootcss.com/moment.js/2.17.1/locale/zh-cn.js"></script>
+  <script src="https://cdn.jsdelivr.net/hi-base64/0.2.0/base64.min.js"></script>
   <!-- evanyou.js -->
   <script src="./static/js/evanyou.js"></script>
   <!-- fastclick -->
   <script>document.addEventListener('DOMContentLoaded', function() { FastClick.attach(document.body) }, false)</script>
+  <!-- fix eslint -->
+  <script>window.Moment = window.moment; moment.locale('zh-cn');</script>
   <!-- built files will be auto injected -->
 </body>
 
