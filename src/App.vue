@@ -21,14 +21,15 @@
       </el-row>
       <!-- form -->
       <el-row :gutter="20">
+        <!-- left -->
         <el-col :lg="{ span: 13, push: 2 }">
           <el-form ref="form" label-position="left" label-width="60px">
             <el-form-item label="歌曲名">
-              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌曲名" @input="syncMeta" @select="selectHandler" v-model="songName" :trigger-on-focus="false" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
+              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌曲名" @input="syncMeta" @select="selectHandler" v-model="songName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
             </el-form-item>
             <el-form-item label="歌手名">
               <!--<el-input placeholder="请输入歌手名" @input="syncMeta" v-model="singerName"></el-input>-->
-              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌手名" @input="syncMeta" @select="selectHandler" v-model="singerName" :trigger-on-focus="false" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
+              <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌手名" @input="syncMeta" @select="selectHandler" v-model="singerName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
             </el-form-item>
             <el-form-item label="专辑名">
               <el-input placeholder="请输入专辑名" @input="syncMeta" v-model="albumName"></el-input>
@@ -37,9 +38,17 @@
               <el-input placeholder="请输入编辑人" @input="syncMeta" v-model="byName"></el-input>
             </el-form-item>
             <!-- lrc-editor component -->
-            <lrc-editor @bindMeta="bindMeta" :aplayer="aplayer" :lyric="lyric"></lrc-editor>
+            <lrc-editor @bindMeta="bindMeta" :aplayer="aplayer" :lyric="lyric" :songName="songName" :byName="byName"></lrc-editor>
+            <div class="button-group">
+              <!--<el-button type="warning" icon="edit">临时保存(ctrl+S)</el-button>-->
+              <a :class="downloadButtonClass" :href="downloadUrl" :download="downloadName">
+                <i class="el-icon--download1"></i>
+                <span>下载歌词</span>
+              </a>
+            </div>
           </el-form>
         </el-col>
+        <!-- right -->
         <el-col :lg="{ span: 7, push: 2 }">
           <!-- aplayer -->
           <div class="aplayer"></div>
@@ -52,6 +61,7 @@
         </el-col>
       </el-row>
     </div>
+    <!-- footer -->
     <footer class="page-footer">
       <div class="footer-content">
         <h2>Lyrics production tool</h2>
@@ -94,6 +104,7 @@ export default {
       lyric: null,
       aplayer: null,
       step: 0,
+      downloadUrl: 'javascript:;', // 歌词下载地址
     }
   },
   methods: {
@@ -103,6 +114,8 @@ export default {
       this.singerName = meta.singerName
       this.albumName = meta.albumName
       this.byName = meta.byName
+      this.downloadUrl = meta.lrc && this.songName &&
+        this.singerName ? `data:text/plain;base64,${window.base64.encode(meta.lrc)}` : 'javascript:;' // update download url
     },
     // 同步LRC头部信息
     syncMeta() {
@@ -124,9 +137,17 @@ export default {
       old.parentElement.insertBefore(element, old)
       old.remove()
 
+      // 初始化 APlayer
       this.aplayer = new window.APlayer({ element, autoplay, mode, preload, showlrc, music, listmaxheight: '115px' })
+      this.aplayer.element.querySelector('.aplayer-icon-menu').click() // 播放列表默认收缩
+
+      // 修正 scrollTop
+      this.aplayer.element.querySelector('.aplayer-list').scrollTop =
+        this.aplayer.element.querySelector('.aplayer-list .aplayer-list-light').offsetTop -
+        this.aplayer.element.querySelector('.aplayer-list').offsetTop
+
+      // register event
       this.aplayer.on('canplay', () => {
-        debugger
         if (showlrc !== 0) return
         this.step = 1
         this.syncMeta()
@@ -195,12 +216,30 @@ export default {
       loading.close()
     })
   },
+  computed: {
+    downloadName() {
+      if (this.downloadUrl === 'javascript:;') return
+      return `${this.songName} - ${this.singerName}.lrc`
+    },
+    downloadButtonClass() {
+      return {
+        'el-button': true,
+        'el-button--primary': true,
+        'is-disabled': this.downloadUrl === 'javascript:;'
+      }
+    }
+  },
   components: { LrcEditor }
 }
 </script>
 <style lang="scss">
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(88, 183, 255, .7);
+  color: #fff;
 }
 
 html {
@@ -222,6 +261,10 @@ body {
   .container {
     padding: 15px;
   }
+}
+
+a {
+  text-decoration: none;
 }
 
 .el-row {
@@ -279,8 +322,12 @@ textarea,
 
 @media (max-width: 1199px) {
   .aplayer {
-    margin-top: 26px;
+    margin-top: 26px !important;
   }
+}
+
+.button-group {
+  text-align: right;
 }
 
 .page-footer {
@@ -319,6 +366,7 @@ textarea,
     top: 50%;
     right: 15%;
     transform: translate3d(0, -50%, 0);
+    -webkit-user-select: none;
     [class*=" el-icon--"],
     [class^=el-icon--] {
       font-size: 34px;
