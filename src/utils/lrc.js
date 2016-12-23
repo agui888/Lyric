@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-20 22:04:31 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-23 13:40:35
+ * @Last Modified time: 2016-12-23 17:14:54
  */
 
 import QQMusicAPI from './QQMusicAPI'
@@ -23,7 +23,7 @@ export default class LRC {
   static syncMeta(meta = { songName: '', singerName: '', albumName: '', byName: '' }) {
     // 空信息不要返回
     if (Object.values(meta).map(x => !x).filter(x => x === false).length <= 0) return ''
-    const audio = this.aplayer.audio
+    const audio = (this.aplayer || { audio: { duration: 0 } }).audio // if null 
     const minute = (Number.parseInt(audio.duration / 60) || 0).toString().padLeft(2, '0')
     const second = (Number.parseInt(audio.duration % 60) || 0).toString().padLeft(2, '0')
     return LRC.removeSpaces(
