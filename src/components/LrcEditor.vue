@@ -85,8 +85,20 @@ export default {
         this.$message({
           type: 'warning',
           message: isDesktop ? '音乐文件未载入，可通过歌曲名称搜索QQ音乐曲库，使用网络地址，或本地上传的方式载入。' : '请先载入音乐文件',
-          duration: isDesktop ? 10e3 : 3e3,
+          duration: isDesktop ? 5e3 : 3e3,
           showClose: isDesktop,
+        })
+        return
+      }
+
+      // console.info(reg)
+      // console.info(reg.test)
+      // debugger
+      const reg = new RegExp(LRC.regex)
+      if (!this.lrc.match(reg)) { // reg.tset is not defined? 喵喵喵?
+        this.$message({
+          type: 'error',
+          message: '歌词格式错误',
         })
         return
       }
@@ -121,7 +133,7 @@ export default {
   watch: {
     // 同步LRC头部信息
     lyric() {
-      this.lrc = this.lyric + LRC.deleteMeta(this.lrc)
+      this.lrc = this.lyric ? this.lyric + LRC.deleteMeta(this.lrc) : null
     },
   },
   created() {
