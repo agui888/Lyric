@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-20 22:04:31 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-24 14:40:14
+ * @Last Modified time: 2016-12-25 00:27:01
  */
 
 import QQMusicAPI from './QQMusicAPI'
@@ -132,10 +132,7 @@ export default class LRC {
   // 去除每一行的首尾空格
   static removeSpaces(lrc) {
     if (!lrc) return ''
-    return lrc.split('\n').map(x => x.trim()).join('\n')
+    return lrc.toString().split('\n').map(x => x.trim()).join('\n')
   }
-
-  // 保存到本地存储
-  // 下载LRC文件
 
 }
