@@ -43,7 +43,7 @@
               <!--<el-button type="warning" icon="edit">临时保存(ctrl+S)</el-button>-->
               <el-tooltip class="lyric-download-confirm-tooltip" content="点击下载后会重置UI，请务必保存到本地" placement="left">
                 <a class="lyric-download-confirm" href="javascript:;" @click="downloadConfirm"></a>
-                <a ref="download" :class="downloadButtonClass" :href="downloadUrl" :download="downloadName" @click="downloadLyric" target="_blank">
+                <a ref="download" :class="downloadButtonClass" :href="downloadUrl" :download="downloadName" target="_blank">
                   <i class="el-icon--download1"></i>
                   <span>下载歌词</span>
                 </a>
@@ -167,18 +167,18 @@ export default {
       this.step = 3
     },
     // 下载确认
-    downloadConfirm() {
+    async downloadConfirm() {
       if (this.downloadUrl === 'javascript:;') return
-      this.$confirm('点击下载后会将工作区重置到初始状态以便编辑新歌词，请务必保存到本地（为了避免误操作歌词会复制到剪切板）', '提示', {
+      const action = await this.$confirm('点击下载后会将工作区重置到初始状态以便编辑新歌词，请务必保存到本地（为了避免误操作歌词会复制到剪切板）', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
         closeOnPressEscape: true,
-      }).then(() => setTimeout(() => this.$refs.download.click(), 500)).catch(() => {})
-    },
-    // 下载歌词
-    downloadLyric(ev) {
-      if (this.downloadUrl === 'javascript:;') return
+      })
+
+      // .then(() => setTimeout(() => this.$refs.download.click(), 500)).catch(() => {})
+      if (action !== 'confirm') return
+      this.$refs.download.click()
 
       // 判断 Safari (not support downlaod attribute)
       const ua = window.navigator.userAgent.toLowerCase()
@@ -186,9 +186,9 @@ export default {
       const iOS = window.device.ios() // 是否是 iOS 用户
 
       // base64解码提取出歌词文本
+      // this.aplayer.pause() // 必须要暂停 Audio 才能复制成功？喵喵喵？
       const base64LRC = this.downloadUrl.substr(this.downloadUrl.indexOf(',') + 1)
       const lrc = window.base64.decode(base64LRC)
-        // const top = document.body.scrollTop // Safari 复制后滚动条位置会发生变化
       const copyRes = Clipboard.copy(lrc) // 将歌词文本复制到剪切板
 
       if (isSafari || iOS) { // Mac Safari 和 iOS 用户: 复制到剪切板并提示用户
@@ -202,17 +202,16 @@ export default {
             onClose: () => this.initUI() // 重置UI
           })
         }
-        ev.preventDefault()
-        return false
+        return
       } else if (copyRes) {
         this.$notify({
           type: 'success',
           message: '已成功将歌词复制到剪切板'
         })
+        this.initUI(true) // 重置UI
       }
 
-      // 重置UI
-      copyRes && setTimeout(() => this.initUI(true))
+      // setTimeout(() => this.$refs.download.click(), 500)
     },
     // 重置UI到初始状态
     async initUI(initData = false) {
