@@ -38,7 +38,7 @@
               <el-input placeholder="请输入编辑人" @input="syncMeta" v-model="byName"></el-input>
             </el-form-item>
             <!-- lrc-editor component -->
-            <lrc-editor @bindMeta="bindMeta" @previewCallback="previewLyric" :aplayer="aplayer" :lyric="lyric" :songName="formModel.songName" :byName="byName" :loadedMedia="loadedMedia"></lrc-editor>
+            <lrc-editor @bindMeta="bindMeta" @previewCallback="previewLyric" :aplayer="aplayer" :lyric="lyric" :songName="formModel.songName" :byName="byName" :loadedMedia="loadedMedia" :autocompleteLyric="autocompleteLyric"></lrc-editor>
             <div class="button-group">
               <!--<el-button type="warning" icon="edit">临时保存(ctrl+S)</el-button>-->
               <el-tooltip class="lyric-download-confirm-tooltip" content="点击下载后会重置UI，请务必保存到本地" placement="left">
@@ -106,8 +106,8 @@ export default {
   data() {
     return {
       formModel: {
-        songName: null,
-        singerName: null,
+        songName: null, // 歌曲名
+        singerName: null, // 歌手名
       },
       // 验证规则
       rules: {
@@ -118,11 +118,12 @@ export default {
           { required: true, message: '请输入歌手名称，多个歌手之间用 / 或 & 隔开' }
         ]
       },
-      albumName: null,
-      byName: null,
-      lyric: null,
-      aplayer: null,
-      step: 0,
+      albumName: null, // 专辑名
+      byName: null, // 编辑者
+      lyric: null, // LRC头部信息
+      autocompleteLyric: null, // 自动完成同步的纯文本歌词，同步到 LRC Editor 组件，方便编辑
+      aplayer: null, // 播放器实例
+      step: 0, // 当前完成步骤进度
       loadedMedia: false, // 是否载入音频文件
       downloadUrl: 'javascript:;', // 歌词下载地址
       uploadMedia: null, // 用户上传的文件
@@ -203,13 +204,18 @@ export default {
         }
         ev.preventDefault()
         return false
+      } else if (copyRes) {
+        this.$notify({
+          type: 'success',
+          message: '已成功将歌词复制到剪切板'
+        })
       }
 
       // 重置UI
-      setTimeout(() => this.initUI())
+      copyRes && setTimeout(() => this.initUI(true))
     },
     // 重置UI到初始状态
-    async initUI() {
+    async initUI(initData = false) {
       const loading = this.$loading({ fullscreen: true })
       const list = await QQMusicAPI.getMyLikeSongs() // 获取我喜欢的音乐
       const music = []
@@ -226,31 +232,19 @@ export default {
       }
       this.createAplayer(music, false, 1) // 创建播放器
 
-      // const index = Math.floor(Math.random() * list.length) // 随机一首
-      // const song = list[index]
-      // let lrc = await QQMusicAPI.getLyric(song.songmid) // 获取LRC歌词
-      // lrc = lrc.replace(/\[/g, '\n[').trim() // 单行歌词兼容
-
-      // 创建播放器
-      // this.createAplayer({
-      //   title: song.songname,
-      //   author: song.singer.map(x => x.name).join(' / '),
-      //   url: QQMusicAPI.getPlayUrl(song.songid),
-      //   pic: QQMusicAPI.getSongPic(song.albummid),
-      //   lrc,
-      // }, false, 1)
-
-      this.formModel.songName = null
-      this.formModel.singerName = null
-      this.albumName = null
-      this.byName = null
-      this.lyric = null
-      this.step = 0
-      this.networkMedia = null
-      this.downloadUrl = 'javascript:;'
-      this.$nextTick(function() {
-        this.$refs.form.resetFields()
-      })
+      if (initData) {
+        this.formModel.songName = null
+        this.formModel.singerName = null
+        this.albumName = null
+        this.byName = null
+        this.lyric = null
+        this.step = 0
+        this.networkMedia = null
+        this.downloadUrl = 'javascript:;'
+        this.$nextTick(function() {
+          this.$refs.form.resetFields()
+        })
+      }
 
       await Thread.sleep(3e2)
       loading.close()
@@ -326,7 +320,7 @@ export default {
       this.formModel.singerName = item.singer.map(x => x.name).join(' / ')
       this.albumName = null // 重置专辑名
       const lyric = await QQMusicAPI.getTextLyric(item.songname, item.songid)
-      console.info(lyric)
+      this.autocompleteLyric = LRC.removeSpaces(lyric)
       this.createAplayer({
         title: this.formModel.songName,
         author: this.formModel.singerName,
@@ -342,7 +336,7 @@ export default {
       }
       this.formModel.songName = '未知歌曲'
       this.formModel.singerName = '未知歌手'
-      this.aplayer = this.createAplayer({
+      this.createAplayer({
         url: this.networkMedia,
         title: this.formModel.songName,
         author: this.formModel.singerName,
@@ -379,7 +373,7 @@ export default {
         const url = this.uplaodMedia = ev.target.result
 
         // create aplayer music object model
-        this.aplayer = this.createAplayer({
+        this.createAplayer({
           url,
           title: this.formModel.songName,
           author: this.formModel.singerName,
