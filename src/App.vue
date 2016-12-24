@@ -167,7 +167,7 @@ export default {
       this.step = 3
     },
     // 下载确认
-    async downloadConfirm() {
+    async downloadConfirm(ev) {
       if (this.downloadUrl === 'javascript:;') return
       const action = await this.$confirm('点击下载后会将工作区重置到初始状态以便编辑新歌词，请务必保存到本地（为了避免误操作歌词会复制到剪切板）', '提示', {
         confirmButtonText: '确定',
@@ -178,7 +178,6 @@ export default {
 
       // .then(() => setTimeout(() => this.$refs.download.click(), 500)).catch(() => {})
       if (action !== 'confirm') return
-      this.$refs.download.click()
 
       // 判断 Safari (not support downlaod attribute)
       const ua = window.navigator.userAgent.toLowerCase()
@@ -202,16 +201,16 @@ export default {
             onClose: () => this.initUI() // 重置UI
           })
         }
-        return
+        ev.preventDefault()
+        return false
       } else if (copyRes) {
         this.$notify({
           type: 'success',
-          message: '已成功将歌词复制到剪切板'
+          message: '已成功将歌词复制到剪切板',
+          onClose: () => this.initUI(true) // 重置UI
         })
-        this.initUI(true) // 重置UI
       }
-
-      // setTimeout(() => this.$refs.download.click(), 500)
+      this.$refs.download.click()
     },
     // 重置UI到初始状态
     async initUI(initData = false) {
