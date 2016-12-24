@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-22 00:41:11 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-24 23:34:04
+ * @Last Modified time: 2016-12-25 01:37:11
  */
 import request from './request'
 
@@ -77,13 +77,15 @@ export default class QQMusicAPI {
     if (lyric) return lyric
 
     const json = await request({ url: 'https://c.y.qq.com/soso/fcgi-bin/search_cp', data: { w, t: 7 } }) // p&n
-    lyric = json.data.lyric.list
-      .find(x => x.songid === songid).content
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/<br\/*>/g, '\n')
-      .replace(/<strong class="keyword">(.+)<\/strong>/g, (match, keyword) => keyword)
+    const list = json.data.lyric.list
+    if (list.length <= 0) return
+
+    lyric = (list.find(x => x.songid === songid) || list[0]).content
+
+    if (lyric) {
+      lyric = lyric.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/<br\/*>/g, '\n')
+        .replace(/<strong class="keyword">(.+?)<\/strong>/g, (match, keyword) => keyword)
+    }
     QQMusicAPI.$cache.set(cacheKey, lyric, cache) // 写入缓存
     return lyric
   }
