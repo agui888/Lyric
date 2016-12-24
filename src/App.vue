@@ -41,10 +41,13 @@
             <lrc-editor @bindMeta="bindMeta" @previewCallback="previewLyric" :aplayer="aplayer" :lyric="lyric" :songName="formModel.songName" :byName="byName" :loadedMedia="loadedMedia"></lrc-editor>
             <div class="button-group">
               <!--<el-button type="warning" icon="edit">临时保存(ctrl+S)</el-button>-->
-              <a :class="downloadButtonClass" :href="downloadUrl" :download="downloadName">
-                <i class="el-icon--download1"></i>
-                <span>下载歌词</span>
-              </a>
+              <el-tooltip class="lyric-download-confirm-tooltip" content="点击下载后会重置UI，请务必保存到本地" placement="left">
+                <a class="lyric-download-confirm" href="javascript:;" @click="downloadConfirm"></a>
+                <a ref="download" :class="downloadButtonClass" :href="downloadUrl" :download="downloadName" @click="downloadLyric" target="_blank">
+                  <i class="el-icon--download1"></i>
+                  <span>下载歌词</span>
+                </a>
+              </el-tooltip>
             </div>
           </el-form>
         </el-col>
@@ -53,9 +56,13 @@
           <!-- aplayer -->
           <div class="aplayer"></div>
           <!-- uplaod or network -->
-          <el-input placeholder="请输入（音乐）网络地址或上传本地音乐文件">
+          <el-input placeholder="请输入（音乐）网络地址或上传本地音乐文件" @blur="loadNetworkMedia" @keyup.enter.native="loadNetworkMedia" v-model="networkMedia">
             <el-tooltip slot="append" content="上传本地音乐文件" placement="bottom">
-              <el-button icon="upload2"></el-button>
+              <!--<el-button icon="upload2"></el-button>-->
+              <label class="el-button el-button--default">
+                <i class="el-icon-upload2"></i>
+                <input type="file" @change="uploadMediaHandler" accept="audio/*">
+              </label>
             </el-tooltip>
           </el-input>
         </el-col>
@@ -92,6 +99,7 @@ import LrcEditor from './components/LrcEditor.vue'
 import LRC from './utils/lrc.js'
 import QQMusicAPI from './utils/QQMusicAPI.js'
 import Thread from './utils/thread.js'
+import Clipboard from './utils/clipboard.js'
 
 export default {
   name: 'app',
@@ -117,6 +125,8 @@ export default {
       step: 0,
       loadedMedia: false, // 是否载入音频文件
       downloadUrl: 'javascript:;', // 歌词下载地址
+      uploadMedia: null, // 用户上传的文件
+      networkMedia: null, // 网络文件地址
     }
   },
   methods: {
@@ -130,8 +140,8 @@ export default {
         this.formModel.singerName ? `data:text/plain;base64,${window.base64.encode(meta.lrc)}` : 'javascript:;'
 
       // 更新步骤条
-      if (this.formModel.songName && this.formModel.singerName && meta.lrc) this.step = 2
-      else this.step = 1
+      if (this.formModel.songName && this.formModel.singerName && meta.lrc && this.loadedMedia) this.step = 2
+      else this.step = this.loadedMedia ? 1 : 0
     },
     // 同步LRC头部信息
     syncMeta() {
@@ -141,7 +151,7 @@ export default {
           singerName: this.formModel.singerName,
           albumName: this.albumName,
           byName: this.byName
-        })
+        }) || ''
       })
     },
     // 子组件要求预览歌词，重新初始化APlayer
@@ -153,67 +163,53 @@ export default {
       const music = this.aplayer.music
       music.lrc = lrc
       this.createAplayer(music, true, 1)
+      this.step = 3
     },
-    // 初始化APlayer
-    async createAplayer(music, autoplay = false, showlrc = 0, mode = 'random', preload = 'metadata') {
-      window.NProgress.start()
+    // 下载确认
+    downloadConfirm() {
+      if (this.downloadUrl === 'javascript:;') return
+      this.$confirm('点击下载后会将工作区重置到初始状态以便编辑新歌词，请务必保存到本地（为了避免误操作歌词会复制到剪切板）', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        closeOnPressEscape: true,
+      }).then(() => setTimeout(() => this.$refs.download.click(), 500)).catch(() => {})
+    },
+    // 下载歌词
+    downloadLyric(ev) {
+      if (this.downloadUrl === 'javascript:;') return
 
-      // 处理歌词显示切换无效
-      const old = document.querySelector('.aplayer')
-      const element = document.createElement('div')
-      element.className = 'aplayer'
-      old.parentElement.insertBefore(element, old)
-      old.remove()
+      // 判断 Safari (not support downlaod attribute)
+      const ua = window.navigator.userAgent.toLowerCase()
+      const isSafari = ua.includes('safari') && !ua.includes('chrome') // 是否是 Safari 用户
+      const iOS = window.device.ios() // 是否是 iOS 用户
 
-      // 初始化 APlayer
-      this.aplayer = new window.APlayer({ element, autoplay, mode, preload, showlrc, music, listmaxheight: '115px' })
-      if ('length' in music) {
-        this.aplayer.element.querySelector('.aplayer-icon-menu').click() // 播放列表默认收缩
+      // base64解码提取出歌词文本
+      const base64LRC = this.downloadUrl.substr(this.downloadUrl.indexOf(',') + 1)
+      const lrc = window.base64.decode(base64LRC)
+        // const top = document.body.scrollTop // Safari 复制后滚动条位置会发生变化
+      const copyRes = Clipboard.copy(lrc) // 将歌词文本复制到剪切板
 
-        // 修正 scrollTop
-        this.aplayer.element.querySelector('.aplayer-list').scrollTop =
-          this.aplayer.element.querySelector('.aplayer-list .aplayer-list-light').offsetTop -
-          this.aplayer.element.querySelector('.aplayer-list').offsetTop
+      if (isSafari || iOS) { // Mac Safari 和 iOS 用户: 复制到剪切板并提示用户
+        if (copyRes) {
+          // document.body.scrollTop = top // 修复复制后滚动条位置发生变化
+          this.$message({
+            type: 'warning',
+            message: '您的浏览器不支持直接下载，已成功将歌词复制到剪切板',
+            duration: 8e3,
+            showClose: true,
+            onClose: () => this.initUI() // 重置UI
+          })
+        }
+        ev.preventDefault()
+        return false
       }
 
-      // register event
-      this.aplayer.on('canplay', () => {
-        window.NProgress.done()
-        if (showlrc !== 0) return
-        this.step = 1
-        this.syncMeta()
-        this.loadedMedia = true
-        this.$message('音频文件已载入')
-      })
-      return this.aplayer
+      // 重置UI
+      setTimeout(() => this.initUI())
     },
-    // 搜索建议
-    async searchSuggest(qs, cb) {
-      const empty = this.formModel.songName && this.formModel.singerName // 禁止弹出多个搜索建议
-      if (!qs || (empty && document.querySelectorAll('.el-autocomplete__suggestions').length > 0)) {
-        cb([]) // 搜索关键字为空
-        return
-      }
-      // 如果歌曲名和歌手名都输入了，则搜索组合
-      this.formModel.songName && this.formModel.singerName && (qs = `${this.formModel.songName.trim()} - ${this.formModel.singerName.trim()}`)
-      const result = await QQMusicAPI.search(qs)
-      cb(result.data.song.list)
-    },
-    // 绑定建议信息
-    selectHandler(item) {
-      this.formModel.songName = item.songname
-      this.formModel.singerName = item.singer.map(x => x.name).join(' / ')
-      this.createAplayer({
-        title: this.formModel.songName,
-        author: this.formModel.singerName,
-        url: QQMusicAPI.getPlayUrl(item.songid),
-        pic: QQMusicAPI.getSongPic(item.albummid),
-      }, true, 0, 'loop')
-    }
-  },
-  // 初始化
-  created() {
-    this.$nextTick(async function() {
+    // 重置UI到初始状态
+    async initUI() {
       const loading = this.$loading({ fullscreen: true })
       const list = await QQMusicAPI.getMyLikeSongs() // 获取我喜欢的音乐
       const music = []
@@ -244,14 +240,165 @@ export default {
       //   lrc,
       // }, false, 1)
 
+      this.formModel.songName = null
+      this.formModel.singerName = null
+      this.albumName = null
+      this.byName = null
+      this.lyric = null
+      this.step = 0
+      this.networkMedia = null
+      this.downloadUrl = 'javascript:;'
+      this.$nextTick(function() {
+        this.$refs.form.resetFields()
+      })
+
       await Thread.sleep(3e2)
       loading.close()
-    })
+    },
+    // 初始化APlayer
+    async createAplayer(music, autoplay = false, showlrc = 0, mode = 'random', preload = 'metadata') {
+      autoplay && window.NProgress.start()
+
+      // 处理歌词显示切换无效
+      const old = document.querySelector('.aplayer')
+      const element = document.createElement('div')
+      element.className = 'aplayer'
+      old.parentElement.insertBefore(element, old)
+      old.remove()
+
+      const fixScrollTop = () => { // 修正 scrollTop
+        if (!('length' in music)) return
+        this.aplayer.element.querySelector('.aplayer-list').scrollTop =
+          this.aplayer.element.querySelector('.aplayer-list .aplayer-list-light').offsetTop -
+          this.aplayer.element.querySelector('.aplayer-list').offsetTop
+      }
+
+      // 初始化 APlayer
+      this.aplayer = new window.APlayer({ element, autoplay, mode, preload, showlrc, music, listmaxheight: '115px' })
+      if ('length' in music) {
+        this.aplayer.element.querySelector('.aplayer-icon-menu').click() // 播放列表默认收缩
+        fixScrollTop() // 修正 scrollTop
+      }
+
+      // register event
+      this.aplayer.on('canplay', () => {
+        window.NProgress.done()
+        if (showlrc !== 0) return
+        this.step = 1
+        this.syncMeta()
+        this.loadedMedia = true
+        this.$message('音频文件已载入')
+      })
+
+      this.aplayer.on('play', fixScrollTop)
+      this.aplayer.on('error', (err) => {
+        this.$message({
+          type: 'error',
+          message: err.toString(),
+        })
+      })
+
+      return this.aplayer
+    },
+    // 搜索建议
+    async searchSuggest(qs, cb) {
+      const empty = this.formModel.songName && this.formModel.singerName
+      let currentElement = (window.event || { currentTarget: null }).currentTarget // if null
+      const currentValue = (currentElement || { value: null }).value // if null
+      let suggLength = document.querySelectorAll('.el-autocomplete__suggestions').length
+      if (suggLength === 1 && qs === currentValue) suggLength = 0 // 禁止弹出多个搜索建议
+
+      // if (currentElement.tagName.toLowerCase() === 'textarea') currentElement = null
+      // const isActive = document.activeElement === currentElement // 是否是当前激活项
+
+      if (!qs || (empty && suggLength > 0)) { // 禁止弹出多个搜索建议
+        cb([]) // 搜索关键字为空
+        return
+      }
+      // 如果歌曲名和歌手名都输入了，则搜索组合
+      this.formModel.songName && this.formModel.singerName && (qs = `${this.formModel.songName.trim()} - ${this.formModel.singerName.trim()}`)
+      const songlist = await QQMusicAPI.search(qs)
+      cb(songlist)
+    },
+    // 绑定建议信息
+    async selectHandler(item) {
+      this.formModel.songName = item.songname
+      this.formModel.singerName = item.singer.map(x => x.name).join(' / ')
+      this.albumName = null // 重置专辑名
+      const lyric = await QQMusicAPI.getTextLyric(item.songname, item.songid)
+      console.info(lyric)
+      this.createAplayer({
+        title: this.formModel.songName,
+        author: this.formModel.singerName,
+        url: QQMusicAPI.getPlayUrl(item.songid),
+        pic: QQMusicAPI.getSongPic(item.albummid),
+      }, true, 0, 'loop')
+    },
+    // 加载网络文件
+    loadNetworkMedia() {
+      // 武娘 http://124.14.7.27/m10.music.126.net/20161224174821/f3b95cf9f7eb23ffb890508699f4559e/ymusic/b7ba/8b59/9c12/d261860f251f53a78ac9b8a649ed1343.mp3?wshc_tag=0&wsts_tag=585e3e89&wsid_tag=652ca5c2&wsiphost=ipdbm
+      if (!this.networkMedia.trim() || this.networkMedia === this.aplayer.audio.src) { // 如果URL为空或未改变则不加载
+        return
+      }
+      this.formModel.songName = '未知歌曲'
+      this.formModel.singerName = '未知歌手'
+      this.aplayer = this.createAplayer({
+        url: this.networkMedia,
+        title: this.formModel.songName,
+        author: this.formModel.singerName,
+      }, true, 0)
+    },
+    // 上传音频文件
+    uploadMediaHandler(ev) {
+      const file = ev.target.files[0]
+
+      // 判断文件类型
+      if (!file.type.startsWith('audio/')) {
+        this.$message({
+          type: 'error',
+          message: '文件格式不支持，请上传音频文件',
+        })
+        return
+      }
+
+      const loading = this.$loading({ fullscreen: true })
+
+      // 文件名（歌手 - 歌名.扩展名）
+      const result = /(.+)\s*-\s*(.+)(\..+)/.exec(file.name)
+      if (result) {
+        this.formModel.singerName = result[1]
+        this.formModel.songName = result[2]
+      } else { // 文件格式不匹配，采用文件名作为歌曲名
+        this.formModel.songName = file.name.substr(0, file.name.lastIndexOf('.')) || '未知歌曲'
+        this.formModel.singerName = '未知歌手'
+      }
+
+      // 读取本地文件
+      const reader = new window.FileReader()
+      reader.onload = (ev) => {
+        const url = this.uplaodMedia = ev.target.result
+
+        // create aplayer music object model
+        this.aplayer = this.createAplayer({
+          url,
+          title: this.formModel.songName,
+          author: this.formModel.singerName,
+        }, true, 0)
+        loading.close()
+      }
+      reader.readAsDataURL(file)
+
+      ev.target.value = null // reset file value
+    },
+  },
+  // 初始化
+  created() {
+    this.$nextTick(this.initUI)
   },
   computed: {
     downloadName() {
       if (this.downloadUrl === 'javascript:;') return
-      return `${this.formModel.songName} - ${this.formModel.singerName}.lrc`
+      return `${this.formModel.singerName.replace(/\s*\/\s*/, '&')} - ${this.formModel.songName}.lrc`
     },
     downloadButtonClass() {
       return {
@@ -281,8 +428,9 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  font-family: "Pingfang SC", STHeiti, "Lantinghei SC", "Open Sans", Arial, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
   color: #333;
+  font-family: "Pingfang SC", STHeiti, "Lantinghei SC", "Open Sans", Arial, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 #app {
@@ -297,6 +445,10 @@ body {
 
 a {
   text-decoration: none;
+}
+
+input[type=file] {
+  display: none;
 }
 
 .el-row {
@@ -472,31 +624,44 @@ textarea,
   vertical-align: top !important;
 }
 
+.lyric-download-confirm {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
 
 /* 搜索建议增加QQ音乐版权 */
 
-.el-autocomplete__suggestions {
-  &::before,
-  &::after {
-    content: 'QQ音乐提供接口支持';
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    font-size: 12px;
-    line-height: normal;
-    color: #c6c6c6;
-  }
-  &::before {
-    /*content: '\e615';
+@media (min-width: 768px) {
+  .auto-complete-sugg .el-input {
+    /*.el-autocomplete__suggestions,*/
+    &::before,
+    &::after {
+      content: 'QQ音乐提供接口支持';
+      position: absolute;
+      z-index: 9;
+      right: 10px;
+      top: 50%;
+      transform: translate3d(0, -50%, 0);
+      font-size: 12px;
+      line-height: normal;
+      color: #c6c6c6;
+      /*bottom: 10px;*/
+    }
+    &::before {
+      /*content: '\e615';
     font-family: iconfont !important;
     color: #f9cb15;*/
-    content: '';
-    right: 130px;
-    bottom: 12px;
-    width: 12px;
-    height: 12px;
-    background: url('http://y.qq.com/favicon.ico') no-repeat;
-    background-size: cover;
+      /*bottom: 12px;*/
+      content: '';
+      right: 130px;
+      width: 12px;
+      height: 12px;
+      background: url('http://y.qq.com/favicon.ico') no-repeat;
+      background-size: cover;
+    }
   }
 }
 </style>
