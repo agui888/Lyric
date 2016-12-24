@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-20 22:04:31 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-23 17:14:54
+ * @Last Modified time: 2016-12-24 14:40:14
  */
 
 import QQMusicAPI from './QQMusicAPI'
@@ -64,7 +64,15 @@ export default class LRC {
       // 写入／替换时间标签
       const minute = Number.parseInt(audio.currentTime / 60).toString().padLeft(2, '0')
       const second = Number.parseInt(audio.currentTime % 60).toString().padLeft(2, '0')
-      const milliscond = Number.parseInt(audio.currentTime % 60 * 1000 % 100).toString().padLeft(2, '0')
+      const milliscond = Number.parseInt(audio.currentTime % 60 % (Number.parseInt(second) || 1) * 100).toString().padLeft(2, '0')
+
+      // if (milliscond === 'NaN') { // 0 不能为除数
+      //   console.info('duration: ', audio.duration)
+      //   console.info('currentTime: ', audio.currentTime)
+      //   console.info('minute: ', minute)
+      //   console.info('second: ', second)
+      // }
+
       time = `[${minute}:${second}.${milliscond}]`
       mode === 'replace' && (value = lyrics.join('\n')) // 替换模式需要更新值
       const result = value.substr(0, index) + time + value.substr(index)
