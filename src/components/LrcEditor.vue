@@ -36,14 +36,16 @@
 </template>
 <script lang="babel">
 import LRC from '../utils/lrc.js'
+
 export default {
   name: 'lrc-editor',
   props: {
-    songName: String,
-    byName: String,
-    lyric: String,
-    loadedMedia: Boolean, // [父组件状态] 是否载入音频文件 未载入提示载入后预览歌词
-    aplayer: Object,
+    songName: String, // 歌曲名称
+    byName: String, // 编辑者
+    lyric: String, // LRC头部信息
+    autocompleteLyric: String, // 自动完成同步的纯文本歌词，同步到 LRC Editor 组件，方便编辑
+    loadedMedia: Boolean, // 是否载入音频文件 未载入提示载入后预览歌词
+    aplayer: Object, // 播放器实例
   },
   data() {
     return {
@@ -91,9 +93,6 @@ export default {
         return
       }
 
-      // console.info(reg)
-      // console.info(reg.test)
-      // debugger
       const reg = new RegExp(LRC.regex)
       if (!this.lrc.match(reg)) { // reg.tset is not defined? 喵喵喵?
         this.$message({
@@ -105,10 +104,10 @@ export default {
       this.$emit('previewCallback', this.lrc)
     },
     // 同步LRC头部信息
-    syncMeta() {
-      this.saveWork()
+    syncMeta(save) {
+      if (typeof save !== 'boolean' || save === true) this.saveWork() // 防止递归
       this.$nextTick(function() {
-        this.lrc = LRC.removeSpaces(this.lrc)
+        if (this.lrc) this.lrc = LRC.removeSpaces(this.lrc)
         this.$emit('bindMeta', Object.assign({}, LRC.analyzeMeta(this.lrc), { lrc: this.lrc }))
       })
     },
@@ -125,7 +124,7 @@ export default {
     // 恢复工作
     recoveryWork() {
       this.lrc = window.lscache.get('lrc-editor.textarea')
-      this.syncMeta()
+      this.syncMeta(false)
       const time = window.lscache.get('lrc-editor.textarea.savetime')
       if (time) this.savetime = '恢复于 ' + window.Moment(time).fromNow() + ' 的工作'
     },
@@ -134,6 +133,19 @@ export default {
     // 同步LRC头部信息
     lyric() {
       this.lrc = this.lyric ? this.lyric + LRC.deleteMeta(this.lrc) : null
+    },
+    // 同步自动完成歌词
+    autocompleteLyric() {
+      // this.lrc = this.lyric ? this.lyric + this.autocompleteLyric + LRC.deleteMeta(this.lrc) : null
+      if (!this.autocompleteLyric) return
+      const oldText = LRC.deleteMeta(this.lrc)
+      if (this.lyric) {
+        let lrc = this.lyric + this.autocompleteLyric // LRC头部信息 + 纯文本歌词（初始化编辑状态）
+        if (oldText) { // 如果编辑框内还含有用户手动天填写的歌词，则追加到末尾并提示
+          lrc += '\n\n以下是您的原文本：\n' + oldText
+        }
+        lrc && (this.lrc = lrc)
+      }
     },
   },
   created() {
