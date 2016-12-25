@@ -13,20 +13,17 @@
       <el-tooltip content="删除所有时间标签(F12)" placement="top">
         <el-button size="small" icon="delete2" @click="del"></el-button>
       </el-tooltip>
-      <el-tooltip content="撤销(ctrl+Z)" placement="top">
+      <el-tooltip content="撤销(CTRL+Z)" placement="top">
         <el-button size="small" icon="-undo-copy" @click="undo"></el-button>
       </el-tooltip>
-      <el-tooltip content="恢复(ctrl+Y)" placement="top">
+      <el-tooltip content="恢复(CTRL+Y)" placement="top">
         <el-button size="small" icon="-undo-copy el-icon-reversal" @click="redo"></el-button>
       </el-tooltip>
-      <!--<el-tooltip content="保存歌词" placement="top">
-        <el-button size="small" icon="time"></el-button>
-      </el-tooltip>-->
-      <el-tooltip content="预览歌词(ctrl+shift+V)" placement="top">
+      <el-tooltip content="预览歌词(CTRL+ALT+V)" placement="top">
         <el-button size="small" icon="-preview" @click="preview"></el-button>
       </el-tooltip>
     </div>
-    <el-input ref="textarea" type="textarea" :autosize="{ minRows: 15, maxRows: 15 }" placeholder="请输入歌词文本" @input="syncMeta" @keyup.120.native="add" @keyup.121.native="replace" @keyup.122.native="remove" @keyup.123.native="del" @keyup.ctrl.90.native="undo" @keyup.ctrl.89.native="redo" @keyup.ctrl.shift.86.native="preview" v-model="lrc"></el-input>
+    <el-input ref="textarea" type="textarea" :autosize="{ minRows: 15, maxRows: 15 }" placeholder="请输入歌词文本" @input="syncMeta" @keyup.120.native="add" @keyup.121.native="replace" @keyup.122.native="remove" @keyup.123.native="del" @keyup.ctrl.90.native="undo" @keyup.ctrl.89.native="redo" @keyup.ctrl.alt.86.native="preview" v-model="lrc"></el-input>
     <div class="lrc-editor_status-bar">
       <span v-if="songName">正在编辑歌曲 《{{ songName }}》 的歌词 &nbsp;&nbsp; 编辑人: {{ byName || '活雷锋' }}</span>
       <span v-else>LRC Editor Version 1.0</span>
