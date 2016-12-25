@@ -68,24 +68,24 @@
     <footer class="page-footer">
       <div class="footer-content">
         <h2>Lyrics production tool</h2>
-        <a href="https://github.com/u3u/Lyric/issues" target="_blank">反馈建议</a>
-        <a href="https://github.com/u3u/Lyric/blob/master/README.md" target="_blank">使用指南</a>
+        <a href="//github.com/u3u/Lyric/issues" target="_blank">反馈建议</a>
+        <a href="//github.com/u3u/Lyric/blob/master/README.md" target="_blank">使用指南</a>
         <el-tooltip content="QQ音乐提供数据接口支持" placement="top">
-          <a href="http://y.qq.com" target="_blank">QQ音乐</a>
+          <a href="//y.qq.com" target="_blank">QQ音乐</a>
         </el-tooltip>
         <el-tooltip content="上传歌词赚积分" placement="top">
-          <a href="http://music.163.com/#/store/gain/uplyric" target="_blank">网易云音乐</a>
+          <a href="//music.163.com/#/store/gain/uplyric" target="_blank">网易云音乐</a>
         </el-tooltip>
       </div>
       <div class="icon-groups">
         <el-popover ref="cqy" placement="top" trigger="hover">
           <div class="cqy-popver">
             <div class="qrcode-wrapper">
-              <img class="qrcode" src="http://p1.bqimg.com/549484/c2fb59f5a15aaa8d.png">
-              <img class="qrcode-icon" src="http://q4.qlogo.cn/g?b=qq&nk=485463145&s=100">
+              <img class="qrcode" src="//p1.bqimg.com/549484/c2fb59f5a15aaa8d.png">
+              <img class="qrcode-icon" src="//q4.qlogo.cn/g?b=qq&nk=485463145&s=100">
             </div>
             <div class="cqy">
-              <img class="avatar" src="http://q4.qlogo.cn/g?b=qq&nk=485463145&s=100">
+              <img class="avatar" src="//q4.qlogo.cn/g?b=qq&nk=485463145&s=100">
               <span>扫一扫二维码，加我QQ。</span>
             </div>
           </div>
@@ -93,10 +93,10 @@
         <a href="javascript:;" class="el-icon--qq" v-popover:cqy></a>
         <!--<a href="javascript:;" class="el-icon--weixin"></a>-->
         <el-tooltip content="欢迎关注我的微博(๑>◡<๑)" placement="top">
-          <a href="http://www.weibo.com/u/5896727167" class="el-icon--weibo" target="_blank"></a>
+          <a href="//www.weibo.com/u/5896727167" class="el-icon--weibo" target="_blank"></a>
         </el-tooltip>
         <el-tooltip content="喜欢的话收藏一下仓库哟(⌯˃̶᷄ ꈊ˂̶᷄ ૢ)" placement="top">
-          <a href="https://github.com/u3u/Lyric" class="el-icon--github" target="_blank"></a>
+          <a href="//github.com/u3u/Lyric" class="el-icon--github" target="_blank"></a>
         </el-tooltip>
       </div>
     </footer>
@@ -333,7 +333,7 @@ export default {
     },
     // 加载网络文件
     loadNetworkMedia() {
-      // 武娘 http://124.14.7.27/m10.music.126.net/20161224174821/f3b95cf9f7eb23ffb890508699f4559e/ymusic/b7ba/8b59/9c12/d261860f251f53a78ac9b8a649ed1343.mp3?wshc_tag=0&wsts_tag=585e3e89&wsid_tag=652ca5c2&wsiphost=ipdbm
+      // 武娘 //124.14.7.27/m10.music.126.net/20161224174821/f3b95cf9f7eb23ffb890508699f4559e/ymusic/b7ba/8b59/9c12/d261860f251f53a78ac9b8a649ed1343.mp3?wshc_tag=0&wsts_tag=585e3e89&wsid_tag=652ca5c2&wsiphost=ipdbm
       if (!this.networkMedia.trim() || this.networkMedia === this.aplayer.audio.src) { // 如果URL为空或未改变则不加载
         return
       }
@@ -521,7 +521,7 @@ textarea,
   margin: 0 !important;
   margin-bottom: 26px !important;
   .aplayer-pic {
-    background: url('http://q4.qlogo.cn/g?b=qq&nk=485463145&s=100');
+    background: url('//q4.qlogo.cn/g?b=qq&nk=485463145&s=100');
     background-size: cover;
   }
   .aplayer-lrc {
@@ -737,7 +737,7 @@ textarea,
       right: 130px;
       width: 12px;
       height: 12px;
-      background: url('http://y.qq.com/favicon.ico') no-repeat;
+      background: url('//y.qq.com/favicon.ico') no-repeat;
       background-size: cover;
     }
   }

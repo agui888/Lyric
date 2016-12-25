@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-22 00:41:11 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-25 18:36:03
+ * @Last Modified time: 2016-12-25 21:32:00
  */
 import request from './request'
 
@@ -20,7 +20,7 @@ export default class QQMusicAPI {
 
     // 发送请求
     const json = await request({
-      url: 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg',
+      url: '//c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg',
       data: { disstid, song_begin: page, song_num: limit, outCharset: 'utf-8', type }
     })
     songlist = json.cdlist[0].songlist
@@ -30,7 +30,7 @@ export default class QQMusicAPI {
 
   // 获取热搜歌曲列表
   static async getHotKeyList() {
-    return await request({ url: 'https://c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg' })
+    return await request({ url: '//c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg' })
   }
 
   // 搜索歌曲(缓存10分钟)
@@ -41,7 +41,7 @@ export default class QQMusicAPI {
     if (songlist) return songlist // 如果缓存中有数据则返回缓存
 
     w = QQMusicAPI.htmldecode(w) // 处理日韩歌曲名
-    const json = await request({ url: 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp', data: { w, p, n } })
+    const json = await request({ url: '//c.y.qq.com/soso/fcgi-bin/search_for_qq_cp', data: { w, p, n } })
     songlist = json.data.song.list
     QQMusicAPI.$cache.set(cacheKey, songlist, cache) // 写入缓存
     return songlist
@@ -49,12 +49,12 @@ export default class QQMusicAPI {
 
   // 获取歌曲播放地址
   static getPlayUrl(musicid) {
-    return `http://ws.stream.qqmusic.qq.com/${musicid}.m4a?fromtag=0`
+    return `//ws.stream.qqmusic.qq.com/${musicid}.m4a?fromtag=0`
   }
 
   // 获取歌曲图片
   static getSongPic(albummid, size = 150) {
-    return `http://y.gtimg.cn/music/photo_new/T002R${size}x${size}M000${albummid}.jpg?max_age=2592000`
+    return `//y.gtimg.cn/music/photo_new/T002R${size}x${size}M000${albummid}.jpg?max_age=2592000`
   }
 
   // 获取LRC歌词(永久缓存)
@@ -63,7 +63,7 @@ export default class QQMusicAPI {
     let lrc = QQMusicAPI.$cache.get(cacheKey)
     if (lrc) return lrc // 如果缓存中有数据则返回缓存
 
-    const json = await request({ url: 'http://wemcc.com/fmusic/api.php', data: { type: 'qq', id: mid }, jsonpCallback: 'callback' })
+    const json = await request({ url: '//wemcc.com/fmusic/api.php', data: { type: 'qq', id: mid }, jsonpCallback: 'callback' })
     lrc = json.lrc
     QQMusicAPI.$cache.set(cacheKey, lrc) // 写入缓存
     return lrc
@@ -76,7 +76,7 @@ export default class QQMusicAPI {
     let lyric = QQMusicAPI.$cache.get(cacheKey)
     if (lyric) return lyric
 
-    const json = await request({ url: 'https://c.y.qq.com/soso/fcgi-bin/search_cp', data: { w, t: 7 } }) // p&n
+    const json = await request({ url: '//c.y.qq.com/soso/fcgi-bin/search_cp', data: { w, t: 7 } }) // p&n
     const list = json.data.lyric.list
     if (list.length <= 0) return
 
