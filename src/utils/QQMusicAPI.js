@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-22 00:41:11 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-25 15:42:28
+ * @Last Modified time: 2016-12-25 18:36:03
  */
 import request from './request'
 
@@ -12,7 +12,7 @@ export default class QQMusicAPI {
   static $cache = window.lscache
 
   // 获取我喜欢的歌曲列表(缓存1小时)
-  static async getMyLikeSongs(limit = 50, page = 1, cache = 60, disstid = 2275334621, type = 1) {
+  static async getMyLikeSongs(limit = 50, page = 0, cache = 60, disstid = 2275334621, type = 1) {
     const cacheKey = 'QQMusicAPI.getMyLikeSongs'
     if (cache <= 0) QQMusicAPI.$cache.remove(cacheKey) // 如果需要立即清除缓存
     let songlist = QQMusicAPI.$cache.get(cacheKey)
@@ -21,7 +21,7 @@ export default class QQMusicAPI {
     // 发送请求
     const json = await request({
       url: 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg',
-      data: { disstid, song_begin: page, song_num: limit, type }
+      data: { disstid, song_begin: page, song_num: limit, outCharset: 'utf-8', type }
     })
     songlist = json.cdlist[0].songlist
     QQMusicAPI.$cache.set(cacheKey, songlist, cache) // 写入缓存
