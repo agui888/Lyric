@@ -538,8 +538,8 @@ textarea,
     }
   }
   .aplayer-list ol li {
-    height: 37px;
-    line-height: 37px;
+    height: 37px !important;
+    line-height: 37px !important;
     .aplayer-list-index {
       display: none;
     }
