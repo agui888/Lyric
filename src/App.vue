@@ -423,8 +423,12 @@ body {
   min-height: 100%;
   margin: 0;
   color: #333;
-  font-family: "Pingfang SC", STHeiti, "Lantinghei SC", "Open Sans", Arial, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
+  font-family: "Pingfang SC", STHeiti, "Lantinghei SC", "Open Sans", Arial, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif !important;
   -webkit-font-smoothing: antialiased;
+}
+
+input, textarea, keygen, select, button {
+  font-family: inherit;
 }
 
 #app {
@@ -468,6 +472,8 @@ textarea,
 }
 
 .aplayer {
+  font-family: inherit;
+  line-height: 1.2;
   background: rgba(255, 255, 255, .85);
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, .12);
   margin: 0 !important;
