@@ -415,6 +415,32 @@ export default {
   color: #fff;
 }
 
+
+/* windows 下滚动条样式优化 */
+
+.windows {
+   ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+   ::-webkit-scrollbar-track-piece {
+    background-color: #eee;
+    margin: -2px;
+  }
+   ::-webkit-scrollbar-thumb {
+    background: #aaa;
+    min-height: 150px;
+    min-width: 150px;
+    border-radius: 10px;
+  }
+   ::-webkit-scrollbar-thumb:vertical:hover {
+    background: #555555
+  }
+   ::-webkit-scrollbar-thumb:horizontal:hover {
+    background: #555555
+  }
+}
+
 html {
   height: 100%;
 }
@@ -425,9 +451,14 @@ body {
   color: #333;
   font-family: "Pingfang SC", STHeiti, "Lantinghei SC", "Open Sans", Arial, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif !important;
   -webkit-font-smoothing: antialiased;
+  -webkit-overflow-scrolling: touch;
 }
 
-input, textarea, keygen, select, button {
+input,
+textarea,
+keygen,
+select,
+button {
   font-family: inherit;
 }
 
