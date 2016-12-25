@@ -237,14 +237,14 @@ export default {
         })
       }
       this.createAplayer(music, true, 1) // 创建播放器
-
+      this.step = 0
+      
       if (initData) {
         this.formModel.songName = null
         this.formModel.singerName = null
         this.albumName = null
         this.byName = null
         this.lyric = null
-        this.step = 0
         this.networkMedia = null
         this.downloadUrl = 'javascript:;'
         this.$nextTick(function() {
