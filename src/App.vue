@@ -68,8 +68,8 @@
     <footer class="page-footer">
       <div class="footer-content">
         <h2>Lyrics production tool</h2>
-        <a href="javascript:;">反馈建议</a>
-        <a href="javascript:;">使用指南</a>
+        <a href="https://github.com/u3u/Lyric/issues" target="_blank">反馈建议</a>
+        <a href="https://github.com/u3u/Lyric/blob/master/README.md" target="_blank">使用指南</a>
         <el-tooltip content="QQ音乐提供数据接口支持" placement="top">
           <a href="http://y.qq.com" target="_blank">QQ音乐</a>
         </el-tooltip>
@@ -96,7 +96,7 @@
           <a href="http://www.weibo.com/u/5896727167" class="el-icon--weibo" target="_blank"></a>
         </el-tooltip>
         <el-tooltip content="喜欢的话收藏一下仓库哟(⌯˃̶᷄ ꈊ˂̶᷄ ૢ)" placement="top">
-          <a href="https://github.com/u3u" class="el-icon--github" target="_blank"></a>
+          <a href="https://github.com/u3u/Lyric" class="el-icon--github" target="_blank"></a>
         </el-tooltip>
       </div>
     </footer>
@@ -195,7 +195,7 @@ export default {
       // base64解码提取出歌词文本
       // this.aplayer.pause() // 必须要暂停 Audio 才能复制成功？喵喵喵？
       const base64LRC = this.downloadUrl.substr(this.downloadUrl.indexOf(',') + 1)
-      const lrc = window.base64.decode(base64LRC)
+      const lrc = window.base64.decode(base64LRC).replace(/\n/g, '\r\n') // \n 替换成 \r\n 否则 windows 记事本不显示换行
       const copyRes = Clipboard.copy(lrc) // 将歌词文本复制到剪切板
 
       if (isSafari || iOS) { // Mac Safari 和 iOS 用户: 复制到剪切板并提示用户
@@ -236,7 +236,7 @@ export default {
           lrc,
         })
       }
-      this.createAplayer(music, false, 1) // 创建播放器
+      this.createAplayer(music, true, 1) // 创建播放器
 
       if (initData) {
         this.formModel.songName = null
