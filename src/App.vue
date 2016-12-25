@@ -1,4 +1,3 @@
-<!-- http://music.163.com/#/store/gain/uplyric -->
 <template>
   <div id="app">
     <div class="container">
@@ -79,8 +78,20 @@
         </el-tooltip>
       </div>
       <div class="icon-groups">
-        <a href="javascript:;" class="el-icon--qq"></a>
-        <a href="javascript:;" class="el-icon--weixin"></a>
+        <el-popover ref="cqy" placement="top" trigger="hover">
+          <div class="cqy-popver">
+            <div class="qrcode-wrapper">
+              <img class="qrcode" src="http://p1.bqimg.com/549484/c2fb59f5a15aaa8d.png">
+              <img class="qrcode-icon" src="http://q4.qlogo.cn/g?b=qq&nk=485463145&s=100">
+            </div>
+            <div class="cqy">
+              <img class="avatar" src="http://q4.qlogo.cn/g?b=qq&nk=485463145&s=100">
+              <span>扫一扫二维码，加我QQ。</span>
+            </div>
+          </div>
+        </el-popover>
+        <a href="javascript:;" class="el-icon--qq" v-popover:cqy></a>
+        <!--<a href="javascript:;" class="el-icon--weixin"></a>-->
         <el-tooltip content="欢迎关注我的微博(๑>◡<๑)" placement="top">
           <a href="http://www.weibo.com/u/5896727167" class="el-icon--weibo" target="_blank"></a>
         </el-tooltip>
@@ -593,6 +604,48 @@ textarea,
         color: #fff;
         transform: scale(1.2);
       }
+    }
+  }
+}
+
+
+/* 处q友 */
+
+.cqy-popver {
+  text-align: center;
+  margin: -10px;
+  .qrcode-wrapper {
+    padding: 10px;
+    position: relative;
+    .qrcode {
+      width: 180px;
+    }
+    .qrcode-icon {
+      width: 50px;
+      padding: 5px;
+      border-radius: 8px;
+      background: #fff;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate3d(-50%, -50%, 0);
+    }
+  }
+  .cqy {
+    border-top: 1px solid #d8d8d8;
+    padding: 10px;
+    .avatar {
+      $size: 40px;
+      width: $size;
+      border-radius: $size;
+    }
+    span {
+      text-indent: 6px;
+    }
+    >* {
+      display: inline-block;
+      vertical-align: middle;
+      color: #717171;
     }
   }
 }
