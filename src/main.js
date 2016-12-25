@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-21 18:19:54 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-23 21:59:09
+ * @Last Modified time: 2016-12-25 16:19:31
  */
 
 // The Vue build version to load with the `import` command
@@ -38,6 +38,7 @@ new Vue({
   el: '#app',
   beforeCreate() {
     window.NProgress.start()
+    window.device.windows() && document.body.parentElement.classList.add('windows')
   },
   async mounted() {
     await Thread.sleep(3e2)
