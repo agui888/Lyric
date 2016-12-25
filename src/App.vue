@@ -28,7 +28,6 @@
               <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌曲名" @input="syncMeta" @select="selectHandler" v-model="formModel.songName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
             </el-form-item>
             <el-form-item label="歌手名" prop="singerName">
-              <!--<el-input placeholder="请输入歌手名" @input="syncMeta" v-model="singerName"></el-input>-->
               <el-autocomplete class="auto-complete-sugg" placeholder="请输入歌手名" @input="syncMeta" @select="selectHandler" v-model="formModel.singerName" :trigger-on-focus="true" :fetch-suggestions="searchSuggest" custom-item="autocomplete-singer-name"></el-autocomplete>
             </el-form-item>
             <el-form-item label="专辑名">
@@ -40,7 +39,6 @@
             <!-- lrc-editor component -->
             <lrc-editor @bindMeta="bindMeta" @previewCallback="previewLyric" :aplayer="aplayer" :lyric="lyric" :songName="formModel.songName" :byName="byName" :loadedMedia="loadedMedia" :autocompleteLyric="autocompleteLyric"></lrc-editor>
             <div class="button-group">
-              <!--<el-button type="warning" icon="edit">临时保存(ctrl+S)</el-button>-->
               <el-tooltip class="lyric-download-confirm-tooltip" content="点击下载后会重置UI，请务必保存到本地" placement="left">
                 <a class="lyric-download-confirm" href="javascript:;" @click="downloadConfirm"></a>
                 <a ref="download" :class="downloadButtonClass" :href="downloadUrl" :download="downloadName" target="_blank">
@@ -58,7 +56,6 @@
           <!-- uplaod or network -->
           <el-input placeholder="请输入（音乐）网络地址或上传本地音乐文件" @blur="loadNetworkMedia" @keyup.enter.native="loadNetworkMedia" v-model="networkMedia">
             <el-tooltip slot="append" content="上传本地音乐文件" placement="bottom">
-              <!--<el-button icon="upload2"></el-button>-->
               <label class="el-button el-button--default">
                 <i class="el-icon-upload2"></i>
                 <input type="file" @change="uploadMediaHandler" accept="audio/*">
@@ -300,9 +297,6 @@ export default {
       let suggLength = document.querySelectorAll('.el-autocomplete__suggestions').length
       if (suggLength === 1 && qs === currentValue) suggLength = 0 // 禁止弹出多个搜索建议
 
-      // if (currentElement.tagName.toLowerCase() === 'textarea') currentElement = null
-      // const isActive = document.activeElement === currentElement // 是否是当前激活项
-
       if (!qs || (empty && suggLength > 0)) { // 禁止弹出多个搜索建议
         cb([]) // 搜索关键字为空
         return
@@ -343,12 +337,22 @@ export default {
     // 上传音频文件
     uploadMediaHandler(ev) {
       const file = ev.target.files[0]
+      ev.target.value = null // reset file value
 
       // 判断文件类型
       if (!file.type.startsWith('audio/')) {
         this.$message({
           type: 'error',
           message: '文件格式不支持，请上传音频文件',
+        })
+        return
+      }
+
+      // 判断 size
+      if (file.size <= 0) {
+        this.$message({
+          type: 'error',
+          message: '读取文件大小失败'
         })
         return
       }
@@ -379,8 +383,6 @@ export default {
         loading.close()
       }
       reader.readAsDataURL(file)
-
-      ev.target.value = null // reset file value
     },
   },
   // 初始化
@@ -628,7 +630,6 @@ textarea,
 
 @media (min-width: 768px) {
   .auto-complete-sugg .el-input {
-    /*.el-autocomplete__suggestions,*/
     &::before,
     &::after {
       content: 'QQ音乐提供接口支持';
@@ -640,13 +641,8 @@ textarea,
       font-size: 12px;
       line-height: normal;
       color: #c6c6c6;
-      /*bottom: 10px;*/
     }
     &::before {
-      /*content: '\e615';
-    font-family: iconfont !important;
-    color: #f9cb15;*/
-      /*bottom: 12px;*/
       content: '';
       right: 130px;
       width: 12px;
