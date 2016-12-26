@@ -291,11 +291,12 @@ export default {
       })
 
       this.aplayer.on('play', fixScrollTop)
-      this.aplayer.on('error', (err) => {
+      this.aplayer.audio.addEventListener('error', () => {
         this.$message({
           type: 'error',
-          message: err.toString(),
+          message: '加载音频文件失败',
         })
+        window.NProgress.done()
       })
 
       return this.aplayer
