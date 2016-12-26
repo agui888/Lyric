@@ -102,8 +102,13 @@ export default {
     // 同步LRC头部信息
     syncMeta(save) {
       if (typeof save !== 'boolean' || save === true) this.saveWork() // 防止递归
+
+      // 如果输入的是空格则不处理空格
+      const value = (window.event || { target: { value: '' } }).target.value
+      const inputValue = value[value.length - 1]
+      const isInputSpace = inputValue === ' '
       this.$nextTick(function() {
-        if (this.lrc) this.lrc = LRC.removeSpaces(this.lrc)
+        if (this.lrc && !isInputSpace) this.lrc = LRC.removeSpaces(this.lrc)
         this.$emit('bindMeta', Object.assign({}, LRC.analyzeMeta(this.lrc), { lrc: this.lrc }))
       })
     },
