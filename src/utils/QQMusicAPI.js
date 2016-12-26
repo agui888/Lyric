@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-22 00:41:11 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-25 21:32:00
+ * @Last Modified time: 2016-12-26 16:24:56
  */
 import request from './request'
 
@@ -48,8 +48,13 @@ export default class QQMusicAPI {
   }
 
   // 获取歌曲播放地址
-  static getPlayUrl(musicid) {
-    return `//ws.stream.qqmusic.qq.com/${musicid}.m4a?fromtag=0`
+  // 2016-12-26 16:22:12 某些歌曲通过该方式无法播放
+  // 通过最新的方式获取播放地址（同步QQ音乐）
+  // musicid 传入 songmid
+  // vkey 可通过接口 https://c.y.qq.com/base/fcgi-bin/fcg_musicexpress.fcg?json=3&guid=7578619704 获取，测试固定vkey也可以。
+  static getPlayUrl(musicid, vkey = 'F0F1BD1246DE59DC81678E3EAD23B514ED951E345E3FBB042DE09DA1F892D3AD83F13C92AFD7A4C8B75B16B7396BBEC8F471C49A3DB8DFCE') {
+    // return `//ws.stream.qqmusic.qq.com/${musicid}.m4a?fromtag=0`
+    return `http://thirdparty.gtimg.com/C400${musicid}.m4a?vkey=${vkey}&fromtag=30&guid=7578619704`
   }
 
   // 获取歌曲图片

@@ -165,10 +165,6 @@ export default {
     },
     // 子组件要求预览歌词，重新初始化APlayer
     previewLyric(lrc) {
-      if (!lrc) {
-        this.$message()
-        return
-      }
       const music = this.aplayer.music
       music.lrc = lrc
       this.createAplayer(music, true, 1)
@@ -231,21 +227,21 @@ export default {
         music.push({
           title: item.songname,
           author: item.singer.map(x => x.name).join(' / '),
-          url: QQMusicAPI.getPlayUrl(item.songid),
+          url: QQMusicAPI.getPlayUrl(item.songmid),
           pic: QQMusicAPI.getSongPic(item.albummid),
           lrc,
         })
       }
       this.createAplayer(music, true, 1) // 创建播放器
+      this.loadedMedia = null
       this.step = 0
-      
+
       if (initData) {
         this.formModel.songName = null
         this.formModel.singerName = null
         this.albumName = null
         this.byName = null
         this.lyric = null
-        this.networkMedia = null
         this.downloadUrl = 'javascript:;'
         this.$nextTick(function() {
           this.$refs.form.resetFields()
@@ -328,7 +324,7 @@ export default {
       this.createAplayer({
         title: this.formModel.songName,
         author: this.formModel.singerName,
-        url: QQMusicAPI.getPlayUrl(item.songid),
+        url: QQMusicAPI.getPlayUrl(item.songmid),
         pic: QQMusicAPI.getSongPic(item.albummid),
       }, true, 0, 'loop')
     },
