@@ -104,9 +104,16 @@ export default {
       if (typeof save !== 'boolean' || save === true) this.saveWork() // 防止递归
 
       // 如果输入的是空格则不处理空格
-      const value = (window.event || { target: { value: '' } }).target.value
-      const inputValue = value[value.length - 1]
-      const isInputSpace = inputValue === ' '
+      let isInputSpace = false
+      let inputValue = null
+      const target = (window.event || { target: null }).target
+
+      if (target && target.tagName.toLowerCase() === 'textarea') {
+        const value = (target.value || '').substr(0, target.selectionStart) // 获取最后一次输入的字符
+        inputValue = value[value.length - 1]
+        isInputSpace = inputValue === ' '
+      }
+      
       this.$nextTick(function() {
         if (this.lrc && !isInputSpace) this.lrc = LRC.removeSpaces(this.lrc)
         this.$emit('bindMeta', Object.assign({}, LRC.analyzeMeta(this.lrc), { lrc: this.lrc }))
