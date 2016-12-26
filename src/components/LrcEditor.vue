@@ -90,8 +90,7 @@ export default {
         return
       }
 
-      const reg = new RegExp(LRC.regex)
-      if (!this.lrc.match(reg)) { // reg.tset is not defined? 喵喵喵?
+      if (!LRC.isValid(this.lrc)) { // reg.tset is not defined? 喵喵喵?
         this.$message({
           type: 'error',
           message: '歌词格式错误',
@@ -133,9 +132,8 @@ export default {
     },
     // 同步自动完成歌词
     autocompleteLyric() {
-      // this.lrc = this.lyric ? this.lyric + this.autocompleteLyric + LRC.deleteMeta(this.lrc) : null
-      if (!this.autocompleteLyric) return
-      const oldText = LRC.deleteMeta(this.lrc)
+      const oldText = LRC.deleteMeta(this.lrc) // 如果与原文本相同或编辑器文本是LRC格式则忽略
+      if (!this.autocompleteLyric || this.autocompleteLyric === oldText || LRC.isValid(this.lrc)) return
       if (this.lyric) {
         let lrc = this.lyric + this.autocompleteLyric // LRC头部信息 + 纯文本歌词（初始化编辑状态）
         if (oldText) { // 如果编辑框内还含有用户手动天填写的歌词，则追加到末尾并提示
