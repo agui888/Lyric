@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-20 22:04:31 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-25 00:27:01
+ * @Last Modified time: 2016-12-26 15:51:09
  */
 
 import QQMusicAPI from './QQMusicAPI'
@@ -66,13 +66,6 @@ export default class LRC {
       const second = Number.parseInt(audio.currentTime % 60).toString().padLeft(2, '0')
       const milliscond = Number.parseInt(audio.currentTime % 60 % (Number.parseInt(second) || 1) * 100).toString().padLeft(2, '0')
 
-      // if (milliscond === 'NaN') { // 0 不能为除数
-      //   console.info('duration: ', audio.duration)
-      //   console.info('currentTime: ', audio.currentTime)
-      //   console.info('minute: ', minute)
-      //   console.info('second: ', second)
-      // }
-
       time = `[${minute}:${second}.${milliscond}]`
       mode === 'replace' && (value = lyrics.join('\n')) // 替换模式需要更新值
       const result = value.substr(0, index) + time + value.substr(index)
@@ -82,6 +75,7 @@ export default class LRC {
     // 光标位置优化
     this.$nextTick(function () {
       textarea.selectionStart = textarea.selectionEnd = index + time.length + lyrics[lineIndex].length + 1
+      textarea.scrollTop = Number.parseInt(window.getComputedStyle(textarea)['line-height']) * (lineIndex - 7) // 滚动条位置优化
       textarea.focus()
     })
   }
@@ -133,6 +127,11 @@ export default class LRC {
   static removeSpaces(lrc) {
     if (!lrc) return ''
     return lrc.toString().split('\n').map(x => x.trim()).join('\n')
+  }
+
+  // 判断文本是否符合LRC格式
+  static isValid(lrc) {
+    return Boolean(lrc.match(new RegExp(LRC.regex)))
   }
 
 }
