@@ -1,7 +1,7 @@
 # Lyric
 ![npm-v3.10.3-blue](https://img.shields.io/badge/npm-v3.10.3-blue.svg)
 ![node.js-v6.6.0-brightgreen](https://img.shields.io/badge/node.js-v6.6.0-brightgreen.svg)
-![vue.js-v2.2.10-ff69b4](https://img.shields.io/badge/vue.js-v2.2.10-ff69b4.svg)
+![vue.js-v2.2.10-ff69b4](https://img.shields.io/badge/vue.js-v2.1.0-ff69b4.svg)
 ![webpack-v1.14.0-lightgrey](https://img.shields.io/badge/webpack-v1.14.0-lightgrey.svg)
 ![build](https://img.shields.io/travis/rust-lang/rust.svg)
 ![license](https://img.shields.io/dub/l/vibe-d.svg)
