@@ -105,7 +105,7 @@
 <script lang="babel">
 import LrcEditor from './components/LrcEditor.vue'
 import LRC from './utils/lrc.js'
-import QQMusicAPI from './utils/QQMusicAPI.js'
+import QQMusicAPI from './api/music.js'
 import Thread from './utils/thread.js'
 import Clipboard from './utils/clipboard.js'
 
@@ -227,7 +227,7 @@ export default {
         music.push({
           title: item.songname,
           author: item.singer.map(x => x.name).join(' / '),
-          url: QQMusicAPI.getPlayUrl(item.songmid),
+          url: await QQMusicAPI.getPlayUrl(item.songmid),
           pic: QQMusicAPI.getSongPic(item.albummid),
           lrc,
         })
@@ -324,7 +324,7 @@ export default {
       this.createAplayer({
         title: this.formModel.songName,
         author: this.formModel.singerName,
-        url: QQMusicAPI.getPlayUrl(item.songmid),
+        url: await QQMusicAPI.getPlayUrl(item.songmid),
         pic: QQMusicAPI.getSongPic(item.albummid),
       }, true, 0, 'loop')
     },

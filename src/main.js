@@ -2,7 +2,7 @@
  * @Author: @u3u 
  * @Date: 2016-12-21 18:19:54 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-26 10:08:29
+ * @Last Modified time: 2016-12-27 22:54:11
  */
 
 // The Vue build version to load with the `import` command
@@ -16,7 +16,7 @@ import 'element-ui/lib/theme-default/index.css'
 Vue.use(ElementUI)
 
 import Thread from './utils/thread'
-import QQMusicAPI from './utils/QQMusicAPI.js'
+import QQMusicAPI from './api/music.js'
 import './assets/js/evanyou'
 import './assets/css/kaomoji.css'
 

@@ -2,10 +2,10 @@
  * @Author: @u3u 
  * @Date: 2016-12-20 22:04:31 
  * @Last Modified by: @u3u
- * @Last Modified time: 2016-12-26 15:51:09
+ * @Last Modified time: 2016-12-27 22:54:39
  */
 
-import QQMusicAPI from './QQMusicAPI'
+import QQMusicAPI from '../api/music'
 
 export default class LRC {
 
