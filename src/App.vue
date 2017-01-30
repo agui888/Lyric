@@ -222,14 +222,14 @@ export default {
       const list = await QQMusicAPI.getMyLikeSongs() // 获取我喜欢的音乐
       const music = []
       for (let item of list) {
-        let lrc = await QQMusicAPI.getLyric(item.songmid) // 获取LRC歌词
-        lrc = lrc.replace(/\[/g, '\n[').trim() // 单行歌词兼容
+        // let lrc = await QQMusicAPI.getLyric(item.songmid) // 获取LRC歌词
+        // lrc = lrc.replace(/\[/g, '\n[').trim() // 单行歌词兼容
         music.push({
           title: item.songname,
           author: item.singer.map(x => x.name).join(' / '),
           url: await QQMusicAPI.getPlayUrl(item.songmid),
           pic: QQMusicAPI.getSongPic(item.albummid),
-          lrc,
+          lrc: '[00:00.00]LRC歌词接口未开放(´°д°`)\n[99:99.99]非常抱歉喵(ಗ ‸ ಗ )'
         })
       }
       this.createAplayer(music, true, 1) // 创建播放器
