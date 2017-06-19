@@ -8,7 +8,7 @@
 > Online LRC lyrics production tool
 
 ## Screenshot
-![screenshot](http://p1.bpimg.com/549484/04dce15cd64a29aa.png)
+![screenshot](http://i2.muimg.com/549484/04dce15cd64a29aa.png)
 
 ## Build Setup
 
